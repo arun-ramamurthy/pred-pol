@@ -1,0 +1,192 @@
+
+\documentclass[12pt]{amsart}
+\usepackage{geometry} % see geometry.pdf on how to lay out the page. There's lots.
+\geometry{a4paper} % or letter or a5paper or ... etc
+% \geometry{landscape} % rotated page geometry
+
+% See the ``Article customise'' template for come common customisations
+
+\title{Derivation of the Expectation-Maximization Algorithm for the ETAS model}
+\author{Kristian Lum}
+%\date{September 10} % delete this line to display the current date
+
+%% LaTeX Preamble - Common packages
+
+\usepackage[utf8]{inputenc} % Any characters can be typed directly from the keyboard, eg éçñ
+\usepackage{textcomp} % provide lots of new symbols
+\usepackage{graphicx}  % Add graphics capabilities
+%\usepackage{epstopdf} % to include .eps graphics files with pdfLaTeX
+\usepackage{flafter}  % Don't place floats before their definition
+%\usepackage{topcapt}   % Define \topcation for placing captions above tables (not in gwTeX)
+\usepackage{natbib} % use author/date bibliographic citations
+
+\usepackage{amsmath,a mssymb}  % Better maths support & more symbols
+\usepackage{bm}  % Define \bm{} to use bold math fonts
+\usepackage{memhfixc}  % remove conflict between the memoir class & hyperref
+% \usepackage[activate]{pdfcprot}  % Turn on margin kerning (not in gwTeX)
+\usepackage{pdfsync}  % enable tex source and pdf output syncronicity
+
+%%% BEGIN DOCUMENT
+
+\begin{document}
+\maketitle
+\section{Introduction}
+In this short document, we rederive the algorithm given in \cite{Mohler:2015aa} that is used for predicting the locations of crimes. Because we suspect there is a typo in the article, we provide support for our interpretation of the intended model with quotes from the paper in footnotes.
+
+\section{Model}
+We observe data $X = \{t_i^{(n)}, n = 1, ..., k, i = 1, ..., N_n\}$, where $t_i^{(n)}$ is the time of the $i$th crime that occurs in location $n$. We define $N_n$ to be the total number of crimes that occur in bin $n$ during the period of observation. 
+
+In this model, crimes arise either via a baseline process or as the ``offspring", ``children", or ``aftershocks" of previous crimes. We define latent indicator variables, $Z_{ij}^{(n)}$, which denote the provenance of the $j$th crime, as either arising from the baseline process or as a child of the $i$th crime in bin $n$   
+ for $0< i < j$. Under this model, child crimes only occur in the same bin in which their parent crime occurred.\footnote{Bottom right of page 1402: ``The conditional intensity, or probabilistic rate $\lambda_n(t)$ of events in box $n$ at time $t$ was determined by
+$\lambda_n( t ) = \mu_n +\sum_{t^i_n < t} \theta \omega e^{-\omega(t - t_n^i)}$." The rate in bin $n$ is only a function of other crimes that occurred in bin $n$ ($t^i_n$) and the baseline rate, so children must only be born in the same bin as their parent, otherwise the rate would include events from other bins as well.} Specifically,
+
+\begin{equation*}
+Z_{0j}^{(n)}  =
+\begin{cases}
+1 \text{ if the $j$th crime arose from the baseline process} \\
+0 \text{ otherwise}
+\end{cases}
+\end{equation*}
+
+\begin{equation*}
+Z_{ij}^{(n)}  =
+\begin{cases}
+1 \text{ if the $i$th crime is the parent of the $j$th crime} \\
+0 \text{ otherwise}
+\end{cases}
+\end{equation*}
+
+The baseline process is defined to be a Poisson process with rate $\mu_n$, which is constant across time within each bin. \footnote{Top of page 1402: ``In particular, the background rate $\mu$ is a nonparametric histogram estimate of a stationary Poisson process (Marsan and Lengline 2008)". Bottom of page 1402: ``First-generation events occur according to a Poisson process with constant rate $\mu$".}
+Under this model, the number of crimes arising from the baseline process  in location $n$ over a time period of duration $T$ is distributed as Poisson with rate $\mu_nT$. Using the latent variables, $Z$, we define
+
+\begin{equation*}
+\sum_{j=1}^{N_n} Z_{0j}^{(n)} \sim \text{Poisson}(\mu_nT),
+\end{equation*}
+
+and the contribution to the full $Z$-augmented log-likelihood of the events arising from the baseline process is given by 
+
+\begin{equation*}
+l_{\text{baseline}}(X) = \sum_{n=1}^k \left ( -\mu_nT + \sum_{j=1}^{N_n}Z_{0j}^{(n)} \log \mu_nT - \log((\sum_{j=1}^{N_n}Z_{0j}^{(n)}) !) \right)  
+\end{equation*}
+
+A crime that occurs at time $t$ in bin $n$, regardless of whether the crime arose from the baseline or as a child event, gives rise to $c_t$ child events in bin $n$, where $c_t \sim \text{Pois}(\theta)$. \footnote{Bottom left on page 1402: ``Events (from all generations) each give birth to N direct offspring events, where N is a Poisson random variable with parameter $\theta$."} The time until each of the child events are random draws from an exponential distribution with rate parameter $\omega$, so 
+
+\begin{equation*}
+p(t_j^{(n)} \mid t_i^{(n)}, Z_{ij}^{(n)} = 1) \sim \text{Exp}(\omega)%\propto \omega e^{-\omega(t_i^{(n)} - t^{(n)}_j)}. 
+\end{equation*}
+
+and
+
+\begin{equation*}
+\sum_{j : t_i^{(n)} < t_j^{(n)}} Z_{ij}^{(n)} \sim \text{Poisson}(\theta),
+\end{equation*}
+
+where, by definition,  for fixed $i$ and $n$, $\sum_{j : t_i^{(n)} < t_j^{(n)}} Z_{ij}^{(n)}$ is the number of child events of crime $i$ from location $n$. Then, the contribution to the log-likelihood of the child events is given by 
+
+\begin{eqnarray*}
+l_{\text{children}}(X)  & = & l_{\text{exponential}}(X) + l_{\text{poisson}}(X)\\
+l_{\text{exponential}}(X)  & =  & \sum_{n=1}^k \sum_{i=1}^{N_n} \sum_{j : t_i^{(n)} < t_j^{(n)}} Z_{ij}^{(n)}\left ( \log \omega  - \omega(t_i^{(n)} - t_j^{(n)}) \right )  \\
+l_{\text{poisson}}(X) & = & \sum_n \sum_{i=1}^{N_n} -\theta + (\sum_{j : t_i^{(n)} < t_j^{(n)}} Z_{ij}^{(n)}) \log \theta - \log ((\sum_{j : t_i^{(n)} < t_j^{(n)}} Z_{ij}^{(n)})!)
+\end{eqnarray*}
+
+Combining all of these pieces, then the full augmented log-likelihood is given by 
+
+\begin{equation*}
+l(X; \theta, \omega, \mu) = l_{\text{baseline}}(X) + l_{\text{children}}(X)
+\end{equation*}
+
+Under this model, the expected rate at time $t$ at location $n$ given all other previously observed crimes in location $n$ is given by 
+
+\begin{equation*}
+\lambda_n(t) = \mu_n + \sum_{i : t_i^{(n)} < t} \theta \omega e^{-\omega(t - t_i^{(n)})}. \footnote{ We note that this is the same intensity function given on the bottom right of page 1401, though we use slightly different notation. Specifically, we denote $t_n^i$ as $t_i^{(n)}$.}
+\end{equation*}
+
+We derive this as the expected number of crimes arising from the baseline process $\mu_n$ plus the number of crimes arising as children of previous events in bin $n$. The expected number of children arising from crime $i$ is given by $\theta$, and on expectation $e^{-\omega(t - t_i^{(n)})}$ of them will occur at time $t$, giving $\theta e^{-\omega(t - t_i^{(n)})}$ as the expected number of child events at time $t$ arising from crime $i$. 
+
+\section{Estimation using the E-M Algorithm}
+Estimation takes place using the Expecation-Maximization algorithm, an iterative procedure. At iteration $s$, define the current set of parameter values to be $\{ \theta^{[s]}, \omega^{[s]}, \mu_n^{[s]} \}$.  Then,  for the  E-step, we calculate the expectation of each of the latent variables, $Z_{ij}^{(n)}$.
+
+\subsection{E-step} 
+
+\begin{equation*}
+p_{ij}^{(n)} = E[Z_{ij}^{(n)} \mid X, \theta^{[s]}, \omega^{[s]}, \mu_n^{[s]}]  
+\end{equation*}
+
+ where  
+\begin{eqnarray*}
+p_{ij}^{(n)} &= \frac{\theta^{[s]} \omega^{[s]} e^{-\omega^{[s]}(t_i^{(n)} - t_j^{(n)})}}{\lambda^{[s]}_n(t_j^{(n)})}\\ \label{eq:pij}
+p_{0j}^{(n)} &= \frac{\mu_n^{[s]}}{\lambda^{[s]}_n(t_j^{(n)})}\\ \label{eq:pij0}
+\lambda^{[s]}_n(t) & = \mu_n^{[s]} + \sum_{i : t_i^{(n)} < t} \theta^{[s]} \omega^{[s]} e^{-\omega^{[s]}(t - t_i^{(n)})}
+\footnote{These equations also match those given in the middle of the left column of page 1402, though we denote $p_n^j$ by $p_{0j}^{(n)}$ and $t_n^j$ by $t_j^{(n)}$. }
+\end{eqnarray*}
+
+for $i = 0, ...,N_n$, $j > i$. 
+
+\subsection{M-step}
+Then, in order to derive the EM algorithm associated with the stated log-likelihood, we must calculate 
+
+\begin{eqnarray*} 
+Q(\theta, \omega, \mu) &= & E_{Z \mid X,  \theta^{[s]}, \omega^{[s]}, \mu_n^{[s]}}  l(X, Z; \theta, \omega, \mu)\\
+& =  & E_{Z \mid X,  \theta^{[s]}, \omega^{[s]}, \mu_n^{[s]} }  l_{\text{baseline}}(X) + \\
+& & E_{Z \mid X,  \theta^{[s]}, \omega^{[s]}, \mu_n^{[s]} } + l_{\text{exp}}(X) +\\
+& & E_{Z \mid X,  \theta^{[s]}, \omega^{[s]}, \mu_n^{[s]} }  l_{\text{poisson}}(X) 
+\end{eqnarray*}
+
+This is easily achieved by plugging in $p_{ij}^{(n)}$ of equations \ref{eq:pij} and \ref{eq:pij0} for many of the  corresponding value of $Z_{ij}^{(n)}$. For those components of the sum that are non-linear in $Z_{ij}^{(n)}$, do not plug in $p_{ij}^{(n)}$, as this would be mathematically inappropriate. In those cases where the term is not a function of $\mu_n$, $\omega$, or $\theta$, we shorten notation by denoting these by $C(Z)$, a function that is constant in $Z$.  Plugging in the $p_{ij}^{(n)}$s where appropriate gives
+
+\begin{eqnarray*}
+E_{Z \mid X,  \theta^{[s]}, \omega^{[s]}, \mu_n^{[s]}} l_{\text{baseline}}(X) & = & \sum_{n=1}^k -\mu_nT + (\sum_{j=1}^{N_n} p_{0j}^{(n)}) \log \mu_n T - C_1(Z)\\
+E_{Z \mid X,  \theta^{[s]}, \omega^{[s]}, \mu_n^{[s]}} l_{\text{exp}}(X) & =  & \sum_{n=1}^k\sum_{i=1}^{N_n} \sum_{j : t_i^{(n)} < t_j^{(n)}} p_{ij}^{(n)}\left ( \log \omega - \omega(t_i^{(n)} - t_j^{(n)}) \right ) \\
+E_{Z \mid X,  \theta^{[s]}, \omega^{[s]}, \mu_n^{[s]}} l_{\text{pois}}(X) & =  & \sum_{n=1}^k \sum_{i=1}^{N_n} -\theta + (\sum_{j : t_i^{(n)} < t_j^{(n)}} p_{ij}^{(n)}) \log \theta - C_2(Z)
+\end{eqnarray*}
+
+% \\
+%& \sum_n -\mu_nT + (\sum_{i=1}^{N_n} p_{i0}^{(n)}) \log \mu_n T - E_{Z \mid X,\theta^{(s)}} \log((\sum_{i=1}^{N_n} Z_{i0}^{(n)})!) + \\
+% & \sum_n \sum_{i=1}^{N_n} \sum_{j : t_i^{(n)} < t_j^{(n)}} p_{ij}^{(n)}\left ( \log \omega  - \omega(t_i^{(n)} - t_j^{(n)}) \right ) + \\
+% &\sum_n \sum_{i=1}^{N_n} -\theta + (\sum_{j : t_i^{(n)} < t_j^{(n)}} p_{ij}^{(n)}) \log \theta - E_{Z \mid X,\theta^{(s)}} \log ((\sum_{j : t_i^{(n)} < t_j^{(n)}} Z_{ij}^{(n)})!)
+
+In order to update our parameters, $\theta^{(s+1)}$, $\omega^{(s+1)}$, $\mu_n^{(s+1)}$, we must optimize  $Q(\theta, \omega, \mu)$ with respect to $\mu$, $\theta$, $\omega$. This is easily done by taking partial derivatives, setting the resulting equation equal to zero, and solving for the parameter.
+
+Differentiating $Q$ with respect to $\mu_n$, 
+\begin{equation}
+\frac{\partial Q}{\partial \mu_n}  =  -T  + \frac{\sum_{j=1}^{N_n} p_{0j}^{(n)}}{\mu_n}
+\end{equation}
+
+This gives an updated value of each $\mu_n$ as
+
+\begin{equation*}
+\mu_n^{(s+1)} = \frac{\sum_{j=1}^{N_n} p_{0j}^{(n)}}{T}
+\end{equation*}
+This ``makes sense" as it is the expected number of crimes arising from the baseline process from bin $n$ per unit time. \footnote{This differs from the equation given on page 1402, though it is clear that the original equation cannot possibly be correct. In the E-step given in Mohler et. al, a separate parameter, $\mu_n$ is given for each bin. However, in the M-step, only one global parameter, $\mu$ is updated, thus under the original algorithm, $\mu_n$ would have to be set {\it a priori}, which is unlikely.}
+
+Differentiating $Q$ with respect to $\omega$, 
+
+\begin{equation*}
+\frac{\partial Q}{\partial \omega}  =  \sum_n \sum_{i=1}^{N_n} \sum_{j : t_i^{(n)} < t_j^{(n)}} \frac{p_{ij}^{(n)}}{\omega} - p_{ij}^{(n)}(t_i^{(n)} - t_j^{(n)}) 
+\end{equation*}
+
+Once again, setting equal to zero and solving gives an updated value of $\omega$ as 
+
+\begin{equation*}
+\omega^{(s+1)} = \frac{\sum_n \sum_{i=1}^{N_n} \sum_{j : t_i^{(n)} < t_j^{(n)}} p_{ij}^{(n)}}{ \sum_n \sum_{i=1}^{N_n} \sum_{j : t_i^{(n)} < t_j^{(n)}}  p_{ij}^{(n)}(t_i^{(n)} - t_j^{(n)}) }
+\end{equation*}
+
+Once again, this value intuitively makes sense in the context of the described model, as it is the inverse of the inverse of the expected time between parent and child events.\footnote{This equation also differs from the analogous equation given in Mohler et. al, though they appear very similar. Our derivation differs in that we include the sum over $i$, whereas the original does not. This may just be a difference in notation, as it is possible that the original paper meant for the notation $\sum_{i<j}$ to denote a summation over all $i$ and $j$ such that $i < j$. If that is the case, then what we derived matches exactly with the original algorithm. }
+
+Finally, differentiating $Q$ with respect to $\theta$,
+
+\begin{equation*}
+\frac{\partial Q}{ \partial \theta}  =  \sum_n \sum_{i=1}^{N_n} - 1 + \frac{\sum_{j : t_i^{(n)} < t_j^{(n)}} p_{ij}^{(n)}}{\theta}
+\end{equation*}
+
+Setting equal to zero and solving gives an updated value of $\theta$ as
+
+\begin{equation*}
+\theta^{(s+1)} = \frac{\sum_n \sum_{i=1}^{N_n} \sum_{j : t_i^{(n)} < t_j^{(n)}} p_{ij}^{(n)}}{\sum_n \sum_{i=1}^{N_n} 1}
+\end{equation*}
+
+This equation gives the expected number of child events divided by the total number of potential parent events, which also makes sense as an estimate of the number of child events per parent event.\footnote{This equation differs from the update for $\theta$ given in Mohler et. al in that we again have a third summand over $i$. Once again, this may simply be a notational difference. If we are to interpret $\sum_{i<j}$ as the summation over all possible $i$ and $j$ such that $i < j$, then these would match. }
+
+\bibliography{tandf_uasa20110_1399}
+\bibliographystyle{plain}
+\end{document}
