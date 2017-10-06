@@ -1,0 +1,12 @@
+*.gz
+*.log
+*.aux
+*.backup
+*.out
+*.Rhistory
+*.aux
+*.bbl
+*.blg
+*.pdfsync
+*.synctex.gz
+
