@@ -33,5 +33,6 @@ plotBin <- function(bin_num) {
       data$num_crimes[i] <- 0
     }
   }
-  plot(data$date, data$num_crimes, type = "l", main = paste0("Crimes from Bin #", bin_num))
+  plot(data$date, data$num_crimes, type = "l", 
+       main = paste0("Crimes from Bin #", bin_num), xlab = "Date", ylab = "Number of Crimes")
 }
