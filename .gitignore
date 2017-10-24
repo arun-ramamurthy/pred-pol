@@ -9,4 +9,4 @@
 *.blg
 *.pdfsync
 *.synctex.gz
-
+*/.DS_Store
