@@ -1,6 +1,6 @@
 library(dplyr)
 
-setwd("/Users/vaibhav/Documents/Year4_Senior/Semester 1/stat157/predictive-policing")
+# setwd("/Users/vaibhav/Documents/Year4_Senior/Semester 1/stat157/predictive-policing")
 
 oak <- read.csv("01_import/input/drug_crimes_with_bins.csv")
 oak$OCCURRED <- as.Date(as.character(oak$OCCURRED), format = "%m/%d/%y")
