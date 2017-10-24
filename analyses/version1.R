@@ -2,6 +2,9 @@ library(dplyr)
 
 # setwd("/Users/vaibhav/Documents/Year4_Senior/Semester 1/stat157/predictive-policing")
 
+# Jong path
+setwd("~/Desktop/School/STAT 157/predictive-policing")
+
 oak <- read.csv("01_import/input/drug_crimes_with_bins.csv")
 oak$OCCURRED <- as.Date(as.character(oak$OCCURRED), format = "%m/%d/%y")
 oak_grid <- readRDS("01_import/input/oakland_grid_data.rds")
@@ -38,11 +41,22 @@ plotBin <- function(bin_num) {
        main = paste0("Crimes from Bin #", bin_num), xlab = "Date", ylab = "Number of Crimes")
 }
 
-# takes in aggregated TABLE and returns data.frame 
+# takes in aggregated TABLE and returns data.frame
 # containing total number of crimes over last N days 
-# before DATE (not inclusive)
-get_trailing_table <- function(table, date) {
-  return(NA)
+# before DATE (not inclusive), per bin (grid)
+# sorted by descending number of crimes
+# Note: Date needs to be formated as: "YYYY-MM-DD"
+get_trailing_table <- function(df, date, n) {
+  date <- as.Date(date)
+  df$date <- as.Date(df$date)
+  usedf <- df[(df$date >= (date - n)) & (df$date < date), ]
+  output <- 
+    usedf %>%
+    group_by(., bin) %>%
+    summarise(numCrimes_within = sum(num_crimes)) %>%
+    arrange(desc(numCrimes_within))
+    
+  return(output)
 }
 
 # takes in TRAILING_TABLE from get_trailing_table and returns 
