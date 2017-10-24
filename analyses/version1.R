@@ -58,8 +58,10 @@ get_coverage <- function(bins, date, d) {
   return(NA)
 }
 
-# uses everything above to map ROC curve
-map_roc <- function() {
+# uses everything above to map ROC curve, taking in vector of DATES, 
+# trailing days N to use, future days D to evaluate, and number of
+# bins K
+map_roc <- function(dates, n, d, k) {
   return(NA)
 }
 
