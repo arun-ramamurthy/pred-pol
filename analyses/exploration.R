@@ -36,3 +36,8 @@ plotBin <- function(bin_num) {
   plot(data$date, data$num_crimes, type = "l", 
        main = paste0("Crimes from Bin #", bin_num), xlab = "Date", ylab = "Number of Crimes")
 }
+
+# takes in 
+get_trailing <- function(table, date) {
+  return(NA)
+}
