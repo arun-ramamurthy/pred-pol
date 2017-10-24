@@ -48,14 +48,24 @@ get_trailing_table <- function(table, date) {
 # takes in TRAILING_TABLE from get_trailing_table and returns 
 # vector of K bins with highest crime occurrence
 get_bins <- function(trailing_table, k) {
-  return(NA)
+  return(trailing_table$bin[1:k])
 }
 
 # takes in a vector of BINS from get_bins and returns two-length vector 
 # containing percentage of crimes detected should D days after DATE 
 # (inclusive) and percentage of bins with no crimes (~false positive)
-get_coverage <- function(bins, date, d) {
-  return(NA)
+get_coverage <- function(table, bins, date, d) {
+  k <- length(bins)
+  date_range <- seq(from = date, by = 1, length.out = d)
+  window_table <- table %>%
+    filter(date %in% date_range) %>%
+    group_by(bin) %>%
+    summarize(ncrime = sum(num_crimes)) %>%
+    arrange(desc(ncrime))
+  actual_bins <- get_bins(window_table, k)
+  detection <- length(intersect(bins, actual_bins))
+  fp <- sum(!(actual_bins %in% bins))
+  return(c(actual, fp))
 }
 
 # uses everything above to map ROC curve, taking in vector of DATES, 
