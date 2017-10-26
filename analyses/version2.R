@@ -18,18 +18,15 @@ oak_agg <- oak %>%
 
 # Takes in aggregated DF and returns data.frame
 # containing total number of crimes over last N days 
-# before DATE (not inclusive), per bin (grid),
-# discounted according to exponential kernel (e^-r(T-t)).
-# Returned table should be arranged by descending value 
-# of kernelized number of crimes (bin_score)
+# before DATE (not inclusive), per bin (grid)
 # Note: Date needs to be formated as: "YYYY-MM-DD"
 get_trailing_table <- function(df, date, n) {
   date <- as.Date(date)
-  usedf <- df[(df$date >= (date - n)) & (df$date < date), ]
-  output <- usedf %>%
-    mutate(bin_score = get_bin_score(bin)) %>%
-    arrange(desc(bin_score))
-  return(output)
+  daterange <- seq(from = date - n, length.out = n, by = 1)
+  usedf <- df %>%
+    filter(date %in% daterange)
+  return(usedf %>%
+           arrange(date, bin))
 }
 
 # Takes in BIN number and returns vector of neighbor bins
@@ -37,9 +34,68 @@ get_neighbors <- function(bin) {
   return(c())
 }
 
-# 
-get_bin_score <- function(df, bin) {
-  
+# Calculates kernelized bin score for BIN_NUM
+# using crimes that fall within date range of DF
+# where TODAY is today's date using exponential kernel 
+# (e^-r(T-t)) with r = R.
+get_bin_score <- function(bin_num, df, today, r) {
+  today <- as.Date(today)
+  df <- df %>%
+    filter(bin == bin_num) %>%
+    mutate(bin_score = num_crimes*exp(-r*as.numeric(today - date)))
+  return(sum(df$bin_score))
 }
+
+# Takes in TRAILING_DF and returns data.frame
+# with bin scores for each bin, with today's date DATE and
+# discounted according to exponential kernel with rate R.
+# Returned table should be arranged by descending value 
+# of kernelized number of crimes (bin_score)
+# Note: Date needs to be formated as: "YYYY-MM-DD"
+get_highest_bin_scores <- function(trailing_df, date, r) {
+  bin <- unique(trailing_df$bin)[!is.na(unique(trailing_df$bin))]
+  bin_score <- sapply(bin, get_bin_score, trailing_df, date, r)
+  output <- data.frame(bin, bin_score)
+  return(output %>% arrange(desc(bin_score)))
+}
+
+# Get predicted bins for deployment of K police on DATE using
+# data from N days ahead using R rate of discounting
+get_predicted_bins <- function(date, k, n, r) {
+  date <- as.Date(date)
+  t <- get_trailing_table(oak_agg, date, n)
+  bin_scores <- get_highest_bin_scores(t, date, r)
+  return(bin_scores[1:k,])
+}
+
+# Gets the best capture rate achievable on TODAY given
+# K deployments using DF of crime totals
+get_maximal_capture <- function(df, today, k) {
+  df <- df %>%
+    filter(date == today) %>%
+    arrange(desc(num_crimes))
+  if (length(df$bin) < k) {
+    return(1)
+  } else {
+    return(NA) ##EDIT
+  }
+}
+
+# Gets capture rate of model had we deployed K officers
+# on TODAY using data from DF of crime totals
+get_achieved_capture_rate <- function(df, today, k) {
+  return(NA)
+}
+
+# Gets average capture rate across all dates for K
+# deployments using data from DF of crime totals
+get_average_capture_rate <- function(df, k) {
+  return(NA)
+}
+
+
+
+
+
 
 
