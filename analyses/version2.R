@@ -89,12 +89,22 @@ get_achieved_capture_rate <- function(df, today, k) {
 
 # Gets average capture rate across all dates for K
 # deployments using data from DF of crime totals
-get_average_capture_rate <- function(df, k) {
+get_average_achieved_capture_rate <- function(df, k) {
   return(NA)
 }
 
+# Get's capture rate of Kristian's model for K
+# deployments using date from DF of crime totals
+# on TODAY and predicted bins using LUM_DATA
+get_predpol_capture_rate <- function(df, today, k, lum_data) {
+  return(NA)
+}
 
-
+# Get average capture rate of predpol for K deployments
+# using data from DF of crime totalsand predicted bins using LUM_DATA
+get_average_predpol_capture_rate <- function(df, k, lum_date) {
+  return(NA)
+}
 
 
 
