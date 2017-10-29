@@ -18,7 +18,7 @@ oak_agg <- oak %>%
   rename(date = OCCURRED) %>%
   ungroup()
 
-# Takes in aggregated DF and returns data.frame
+# Takes in aggregated DF (oak_agg) and returns data.frame
 # containing total number of crimes over last N days
 # before DATE (not inclusive), per bin (grid)
 # Note: Date needs to be formated as: "YYYY-MM-DD"
@@ -54,20 +54,33 @@ get_bin_score <- function(bin_num, df, today, r) {
 # Returned table should be arranged by descending value
 # of kernelized number of crimes (bin_score)
 # Note: Date needs to be formated as: "YYYY-MM-DD"
-get_highest_bin_scores <- function(trailing_df, date, r) {
+get_bin_scores <- function(trailing_df, date, r) {
   bin <- unique(trailing_df$bin)[!is.na(unique(trailing_df$bin))]
   bin_score <- sapply(bin, get_bin_score, trailing_df, date, r)
   output <- data.frame(bin, bin_score)
   return(output %>% arrange(desc(bin_score)))
 }
 
+get_predicted_bins_helper <- function(bin, bin_scores) {
+  neighbors <- get_neighbors(bin)
+  final <- s*sum(bin_scores$bin_score[which(bin_scores$bin %in% neighbors)]) +
+    bin_scores$bin_score[which(bin_scores$bin == bin)]
+  return(final)
+}
+
 # Get predicted bins for deployment of K police on DATE using
-# data from N days trailing using R rate of discounting
-get_predicted_bins <- function(date, k, n, r) {
+# data from N days trailing using R rate of discounting,
+# and scaling neighbor bin scores by S
+get_predicted_bins <- function(df, date, k, n, r, s) {
   date <- as.Date(date)
-  t <- get_trailing_table(oak_agg, date, n)
-  bin_scores <- get_highest_bin_scores(t, date, r)
-  return(bin_scores$bin[1:k])
+  t <- get_trailing_table(df, date, n)
+  bin_scores <- get_bin_scores(t, date, r)
+  bins <- bin_scores$bin
+  final_score <- sapply(bins, get_predicted_bins_helper, bin_scores)
+  new_bin_scores <- data.frame(bins, final_score)
+  new_bin_scores <- new_bin_scores %>%
+    arrange(desc(final_score))
+  return(new_bin_scores$bins[1:k])
 }
 
 # Gets the best capture rate achievable on TODAY given
@@ -91,20 +104,25 @@ get_maximal_capture <- function(df, today, k) {
 
 # Gets capture rate of model had we deployed K officers
 # on TODAY using data from DF of crime totals
-get_achieved_capture_rate <- function(df, today, k) {
-  
+get_achieved_capture_rate <- function(df, today, k, n, r, s) {
+  predBins <- get_predicted_bins(df, today, k, n, r, s)
+  allDf <- df[df$date == today, ]
+  lookDf <- allDf[allDf$bin %in% predBins, ]
+  captureRate <- sum(lookDf$num_crimes) / sum(allDf$num_crimes)
+  return(captureRate)
 }
 
 # Gets average capture rate across all dates for K
 # deployments using data from DF of crime totals
-get_average_achieved_capture_rate <- function(df, k) {
-  all_dates = unique(df$OCCURRED)
+get_average_achieved_capture_rate <- function(df, k, n, r, s) {
+  all_dates = unique(df$date)
   num_dates = length(all_dates)
   total_capture_rate = 0
   for (i in 1:num_dates) {
-    total_capture_rate = total_capture_rate + get_achieved_capture_rate(df, all_dates[i], k)
+    total_capture_rate = total_capture_rate + get_achieved_capture_rate(df, all_dates[i], k, n, r, s)
   }
   average_capture_rate = total_capture_rate / num_dates
+  cat("Finished avg capture rate for r = ", r, "../n")
   return(average_capture_rate)
 }
 
@@ -143,3 +161,10 @@ get_average_predpol_capture_rate <- function(df, k, lum_date) {
 
 
 
+# Testing
+rVarious <- 
+  sapply(seq(0, 3, 0.02), function(i) {
+  return(get_average_achieved_capture_rate(oak_agg, 20, 365, i, 0.25))
+})
+
+plot(rVarious)
