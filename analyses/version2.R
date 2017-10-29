@@ -2,7 +2,7 @@ library(dplyr)
 library(ggplot2)
 
 # Vaibhav path setwd("/Users/vaibhav/Documents/Year4_Senior/Semester 1/stat157/predictive-policing")
-# Jong path 
+# Jong path setwd("~/Desktop/School/STAT 157/predictive-policing")
 setwd("~/code/predictive-policing")
 
 oak <- read.csv("01_import/input/drug_crimes_with_bins.csv")
@@ -61,7 +61,7 @@ get_bin_scores <- function(trailing_df, date, r) {
   return(output %>% arrange(desc(bin_score)))
 }
 
-get_predicted_bins_helper <- function(bin, bin_scores) {
+get_predicted_bins_helper <- function(bin, bin_scores, s) {
   neighbors <- get_neighbors(bin)
   final <- s*sum(bin_scores$bin_score[which(bin_scores$bin %in% neighbors)]) +
     bin_scores$bin_score[which(bin_scores$bin == bin)]
@@ -76,7 +76,7 @@ get_predicted_bins <- function(df, date, k, n, r, s) {
   t <- get_trailing_table(df, date, n)
   bin_scores <- get_bin_scores(t, date, r)
   bins <- bin_scores$bin
-  final_score <- sapply(bins, get_predicted_bins_helper, bin_scores)
+  final_score <- sapply(bins, get_predicted_bins_helper, bin_scores, s)
   new_bin_scores <- data.frame(bins, final_score)
   new_bin_scores <- new_bin_scores %>%
     arrange(desc(final_score))
@@ -112,7 +112,6 @@ get_achieved_capture_rate <- function(df, today, k, n, r, s) {
 
 # Gets average capture rate across all dates for K
 # deployments using data from DF of crime totals
-sampDates <- base::sample(unique(oak_agg$date), size = 50)
 get_average_achieved_capture_rate <- function(df, k, n, r, s, date) {
   all_dates = date
   #all_dates = unique(df$date)
@@ -170,7 +169,10 @@ get_average_predpol_capture_rate <- function(df, k, lum_data) {
 
 
 
+
 # Testing
+set.seed(2)
+sampDates <- base::sample(unique(oak_agg$date), size = 50)
 rVarious <- 
   sapply(seq(0, 0.1, 0.01), function(i) {
   return(get_average_achieved_capture_rate(oak_agg, 20, 365, i, 0.25, sampDates))
