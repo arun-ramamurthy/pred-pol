@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "---\ntitle: \"PredPol Project Workbench\"\noutput: html_notebook\n---\n```{r}\nlibrary(readr);library(magrittr);library(lubridate);library(dplyr);library(ggplot2);library(broom);library(tidyverse)\n```\n\n\n```{r}\ndrug_crimes <- read_csv(\"predictive-policing/01_import/input/drug_crimes_with_bins.csv\")\ndrug_crimes %<>% select(X = X1, Bin = bin, Occurred = OCCURRED, Lag = LAG) %>% mutate(Occurred = mdy(Occurred))\n\noak_grid <- readRDS(\"predictive-policing/01_import/input/oakland_grid_data.rds\")\noak_outline <- readRDS(\"predictive-policing/01_import/input/oakland_outline.rds\")\n\nobs <- read_csv(\"predictive-policing/02_run_predictive_policing/output/predpol_drug_observed.csv\") %>% \n  gather(Date, Crimes, - bin) %>% transmute(Bin = as.factor(bin), Date = ymd(Date), `Observed Crimes` = Crimes)\npred <- read_csv(\"predictive-policing/02_run_predictive_policing/output/predpol_drug_predictions.csv\") %>% \n   gather(Date, Crimes, - bin) %>% transmute(Bin = as.factor(bin), Date = ymd(Date), `Predicted Crimes` = Crimes)\ndf <- left_join(obs, pred, by = c(\"Bin\", \"Date\"))\n```\n\n```{r}\nggthemr(\"flat\")\ndf %>% group_by(Date) %>% summarise(`Error` = (sum(`Observed Crimes`) - sum(`Predicted Crimes`))) %>% ggplot(aes(Date, `Error`, fill = sign(Error))) + \n  geom_col(col = \"black\") + ggtitle(\"Model Error by Date\") + theme(legend.position = \"None\")\ndf %>% group_by(Date) %>% summarise(`Absolute Error` = abs(sum(`Observed Crimes`) - sum(`Predicted Crimes`))) %>% ggplot(aes(`Absolute Error`)) + geom_density(fill = swatch()[3], col = swatch()[3]) + ggtitle(\"Distribution of Model Error\")\n```\n\n```{r}\noak_grid %>%\n  ggplot(aes(lat,lon,group=ID))\n```\n",
+    "created" : 1508264791444.000,
+    "dirty" : true,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3313436308",
+    "id" : "4721A522",
+    "lastKnownWriteTime" : 1508431376,
+    "last_content_update" : 1508433311216,
+    "path" : "~/Desktop/WORKSHOP/B/predpol/workbench.Rmd",
+    "project_path" : null,
+    "properties" : {
+        "chunk_output_type" : "inline",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

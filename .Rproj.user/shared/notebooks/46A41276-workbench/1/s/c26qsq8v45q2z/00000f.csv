@@ -1,0 +1,2 @@
+"0","ggthemr(""flat"")"
+"0","df %>% group_by(Date) %>% summarise(`Absolute Error` = abs(sum(`Observed Crimes`) - sum(`Predicted Crimes`))) %>% ggplot(aes(Date, `Absolute Error`)) + geom_col()"

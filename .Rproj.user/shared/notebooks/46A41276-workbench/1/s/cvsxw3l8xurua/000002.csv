@@ -1,0 +1,33 @@
+"0","drug_crimes <- read_csv(""predictive-policing/01_import/input/drug_crimes_with_bins.csv"")"
+"2","Missing column names filled in: 'X1' [1]"
+"2","Parsed with column specification:
+cols(
+  X1 = col_integer(),
+  bin = col_integer(),
+  OCCURRED = col_character(),
+  LAG = col_integer()
+)
+"
+"0","drug_crimes %<>% select(X = X1, Bin = bin, Occurred = OCCURRED, Lag = LAG) %>% mutate(Occurred = mdy(Occurred))"
+"0","oak_grid <- readRDS(""predictive-policing/01_import/input/oakland_grid_data.rds"")"
+"0","oak_outline <- readRDS(""predictive-policing/01_import/input/oakland_outline.rds"")"
+"0","obs <- read_csv(""predictive-policing/02_run_predictive_policing/output/predpol_drug_observed.csv"") %>% "
+"0","  gather(Date, Crimes, - bin) %>% transmute(Bin = as.factor(bin), Date = ymd(Date), `Observed Crimes` = Crimes)"
+"2","Parsed with column specification:
+cols(
+  .default = col_integer()
+)
+"
+"2","See spec(...) for full column specifications.
+"
+"0","pred <- read_csv(""predictive-policing/02_run_predictive_policing/output/predpol_drug_predictions.csv"") %>% "
+"0","   gather(Date, Crimes, - bin) %>% transmute(Bin = as.factor(bin), Date = ymd(Date), `Predicted Crimes` = Crimes)"
+"2","Parsed with column specification:
+cols(
+  .default = col_double(),
+  bin = col_integer()
+)
+"
+"2","See spec(...) for full column specifications.
+"
+"0","df <- left_join(obs, pred, by = c(""Bin"", ""Date""))"

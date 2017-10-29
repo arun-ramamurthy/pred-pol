@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "Visualizating Data\n========================================================\nauthor: Arun Ramamurthy\ndate: October 19th, 2017\nautosize: true\nfont-family: 'Avenir'\ntransition: linear\n\nWorkshop Overview\n=============\ntype: section\n## Introduction\n## Installations\n## R Refresher\n## Basic Plotting with `ggplot2`\n## Geospatial Plots with `sf`\n## Interactive & Animated Plots with `plotly::ggplotly`\n## Basic Modelling\n\nIntroduction\n============\ntype: section\n## The role of data visualization\n## Abstractions in data visualization\n## Tips in data visualization\n\nWhat is R?\n==========\nR is a **programming language** for **data science**\n\nR is a tool to:\n> **Parse** data\n> **Read** data\n> **Clean** data\n> **Visualize** data\n> **Analyze** data\n\nInstalling R\n============\ntype: prompt\n<center> <h1> https://cran.r-project.org/bin/windows/base/R-3.4.1-win.exe </h1> </center>\n<center> <h1> https://cran.r-project.org/bin/macosx/R-3.4.1.pkg </h1> </center>\n\nInstalling RStudio\n============\ntype: prompt\n<center> <h1> https://www.rstudio.com/products/rstudio/download </h1> </center>\n\nInstalling and Loading Packages\n================\n\nClick: `Tools/Install Packages`\n\nor run the following code:\n```{r, eval=F}\n# Only for the first time you're using it on this computer\ninstall.packages(\"ggplot2\", repos = \"https://cran.cnr.berkeley.edu/\")\n# Run after each fresh R session\nlibrary(ggplot2)\n```\n",
+    "created" : 1508373928153.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2840020005",
+    "id" : "724FB556",
+    "lastKnownWriteTime" : 1508380603,
+    "last_content_update" : 1508380603660,
+    "path" : "~/Desktop/WORKSHOP/C/SUSA/vis-workshop/presentation.Rpres",
+    "project_path" : null,
+    "properties" : {
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_presentation"
+}
