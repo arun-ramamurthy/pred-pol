@@ -54,11 +54,18 @@ get_bin_score <- function(bin_num, df, today, r) {
 # Returned table should be arranged by descending value
 # of kernelized number of crimes (bin_score)
 # Note: Date needs to be formated as: "YYYY-MM-DD"
-get_highest_bin_scores <- function(trailing_df, date, r) {
+get_bin_scores <- function(trailing_df, date, r) {
   bin <- unique(trailing_df$bin)[!is.na(unique(trailing_df$bin))]
   bin_score <- sapply(bin, get_bin_score, trailing_df, date, r)
   output <- data.frame(bin, bin_score)
   return(output %>% arrange(desc(bin_score)))
+}
+
+get_predicted_bins_helper <- function(bin, bin_scores) {
+  neighbors <- get_neighbors(bin)
+  final <- s*sum(bin_scores$bin_score[which(bin_scores$bin %in% neighbors)]) +
+    bin_scores$bin_score[which(bin_scores$bin == bin)]
+  return(final)
 }
 
 # Get predicted bins for deployment of K police on DATE using
@@ -67,15 +74,9 @@ get_highest_bin_scores <- function(trailing_df, date, r) {
 get_predicted_bins <- function(df, date, k, n, r, s) {
   date <- as.Date(date)
   t <- get_trailing_table(df, date, n)
-  bin_scores <- get_highest_bin_scores(t, date, r)
+  bin_scores <- get_bin_scores(t, date, r)
   bins <- bin_scores$bin
-  final_score <- c()
-  for (bin in bins) {
-    neighbors <- get_neighbors(bin)
-    final <- s*sum(bin_scores$bin_score[which(bin_scores$bin %in% neighbors)]) +
-      bin_scores$bin_score[which(bin_scores$bin == bin)]
-    final_score <- c(final_score, final)
-  }
+  final_score <- sapply(bins, get_predicted_bins_helper, bin_scores)
   new_bin_scores <- data.frame(bins, final_score)
   new_bin_scores <- new_bin_scores %>%
     arrange(desc(final_score))
