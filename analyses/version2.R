@@ -18,7 +18,7 @@ oak_agg <- oak %>%
   rename(date = OCCURRED) %>%
   ungroup()
 
-# Takes in aggregated DF and returns data.frame
+# Takes in aggregated DF (oak_agg) and returns data.frame
 # containing total number of crimes over last N days
 # before DATE (not inclusive), per bin (grid)
 # Note: Date needs to be formated as: "YYYY-MM-DD"
