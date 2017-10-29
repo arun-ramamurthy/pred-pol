@@ -62,12 +62,24 @@ get_highest_bin_scores <- function(trailing_df, date, r) {
 }
 
 # Get predicted bins for deployment of K police on DATE using
-# data from N days trailing using R rate of discounting
-get_predicted_bins <- function(date, k, n, r) {
+# data from N days trailing using R rate of discounting,
+# and scaling neighbor bin scores by S
+get_predicted_bins <- function(df, date, k, n, r, s) {
   date <- as.Date(date)
-  t <- get_trailing_table(oak_agg, date, n)
+  t <- get_trailing_table(df, date, n)
   bin_scores <- get_highest_bin_scores(t, date, r)
-  return(bin_scores$bin[1:k])
+  bins <- bin_scores$bin
+  final_score <- c()
+  for (bin in bins) {
+    neighbors <- get_neighbors(bin)
+    final <- s*sum(bin_scores$bin_score[which(bin_scores$bin %in% neighbors)]) +
+      bin_scores$bin_score[which(bin_scores$bin == bin)]
+    final_score <- c(final_score, final)
+  }
+  new_bin_scores <- data.frame(bins, final_score)
+  new_bin_scores <- new_bin_scores %>%
+    arrange(desc(final_score))
+  return(new_bin_scores$bins[1:k])
 }
 
 # Gets the best capture rate achievable on TODAY given
