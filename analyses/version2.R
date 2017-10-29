@@ -2,7 +2,8 @@ library(dplyr)
 library(ggplot2)
 
 # Vaibhav path setwd("/Users/vaibhav/Documents/Year4_Senior/Semester 1/stat157/predictive-policing")
-# Jong path setwd("~/Desktop/School/STAT 157/predictive-policing")
+# Jong path 
+setwd("~/Desktop/School/STAT 157/predictive-policing")
 
 oak <- read.csv("01_import/input/drug_crimes_with_bins.csv")
 oak$OCCURRED <- as.Date(as.character(oak$OCCURRED), format = "%m/%d/%y")
@@ -67,7 +68,7 @@ get_predicted_bins <- function(date, k, n, r) {
   date <- as.Date(date)
   t <- get_trailing_table(oak_agg, date, n)
   bin_scores <- get_highest_bin_scores(t, date, r)
-  return(bin_scores[1:k,])
+  return(bin_scores$bin[1:k])
 }
 
 # Gets the best capture rate achievable on TODAY given
@@ -86,7 +87,7 @@ get_maximal_capture <- function(df, today, k) {
 # Gets capture rate of model had we deployed K officers
 # on TODAY using data from DF of crime totals
 get_achieved_capture_rate <- function(df, today, k) {
-  return(NA)
+  
 }
 
 # Gets average capture rate across all dates for K
