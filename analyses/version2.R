@@ -61,6 +61,13 @@ get_bin_scores <- function(trailing_df, date, r) {
   return(output %>% arrange(desc(bin_score)))
 }
 
+get_predicted_bins_helper <- function(bin, bin_scores) {
+  neighbors <- get_neighbors(bin)
+  final <- s*sum(bin_scores$bin_score[which(bin_scores$bin %in% neighbors)]) +
+    bin_scores$bin_score[which(bin_scores$bin == bin)]
+  return(final)
+}
+
 # Get predicted bins for deployment of K police on DATE using
 # data from N days trailing using R rate of discounting,
 # and scaling neighbor bin scores by S
@@ -69,13 +76,7 @@ get_predicted_bins <- function(df, date, k, n, r, s) {
   t <- get_trailing_table(df, date, n)
   bin_scores <- get_bin_scores(t, date, r)
   bins <- bin_scores$bin
-  final_score <- c()
-  for (bin in bins) {
-    neighbors <- get_neighbors(bin)
-    final <- s*sum(bin_scores$bin_score[which(bin_scores$bin %in% neighbors)]) +
-      bin_scores$bin_score[which(bin_scores$bin == bin)]
-    final_score <- c(final_score, final)
-  }
+  final_score <- sapply(bins, get_predicted_bins_helper, bin_scores)
   new_bin_scores <- data.frame(bins, final_score)
   new_bin_scores <- new_bin_scores %>%
     arrange(desc(final_score))
