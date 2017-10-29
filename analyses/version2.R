@@ -9,6 +9,8 @@ oak$OCCURRED <- as.Date(as.character(oak$OCCURRED), format = "%m/%d/%y")
 oak_grid <- readRDS("01_import/input/oakland_grid_data.rds")
 oak_outline <- readRDS("01_import/input/oakland_outline.rds")
 
+touching_dict <- readRDS("analyses/bin_touching_dictionary.rds")
+
 oak_agg <- oak %>%
   group_by(bin, OCCURRED) %>%
   summarize(num_crimes = n(), mean_lag = mean(LAG)) %>%
@@ -17,7 +19,7 @@ oak_agg <- oak %>%
   ungroup()
 
 # Takes in aggregated DF and returns data.frame
-# containing total number of crimes over last N days 
+# containing total number of crimes over last N days
 # before DATE (not inclusive), per bin (grid)
 # Note: Date needs to be formated as: "YYYY-MM-DD"
 get_trailing_table <- function(df, date, n) {
@@ -31,12 +33,12 @@ get_trailing_table <- function(df, date, n) {
 
 # Takes in BIN number and returns vector of neighbor bins
 get_neighbors <- function(bin) {
-  return(c())
+  touching_dict[[bin]]
 }
 
 # Calculates kernelized bin score for BIN_NUM
 # using crimes that fall within date range of DF
-# where TODAY is today's date using exponential kernel 
+# where TODAY is today's date using exponential kernel
 # (e^-r(T-t)) with r = R.
 get_bin_score <- function(bin_num, df, today, r) {
   today <- as.Date(today)
@@ -49,7 +51,7 @@ get_bin_score <- function(bin_num, df, today, r) {
 # Takes in TRAILING_DF and returns data.frame
 # with bin scores for each bin, with today's date DATE and
 # discounted according to exponential kernel with rate R.
-# Returned table should be arranged by descending value 
+# Returned table should be arranged by descending value
 # of kernelized number of crimes (bin_score)
 # Note: Date needs to be formated as: "YYYY-MM-DD"
 get_highest_bin_scores <- function(trailing_df, date, r) {
