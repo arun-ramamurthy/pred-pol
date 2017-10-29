@@ -89,16 +89,14 @@ get_maximal_capture <- function(df, today, k) {
   df <- df %>%
     filter(date == today) %>%
     arrange(desc(num_crimes))
-  if (length(df$bin) < k) {
+  if (nrow(df) == 0) {
+    return(0)
+  } else if (nrow(df) < k) {
     return(1)
   } else {
     total_crime <- sum(df$num_crimes)
     captured_crime <- sum(df$num_crimes[1:k])
-    if (total_crime == 0) {
-      return(0)
-    } else {
-      return(captured_crime/total_crime)
-    }
+    return(captured_crime/total_crime)
   }
 }
 
