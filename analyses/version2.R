@@ -103,8 +103,8 @@ get_maximal_capture <- function(df, today, k) {
 
 # Gets capture rate of model had we deployed K officers
 # on TODAY using data from DF of crime totals
-get_achieved_capture_rate <- function(df, today, k, n, r) {
-  predBins <- get_predicted_bins(df, today, k, n, r)
+get_achieved_capture_rate <- function(df, today, k, n, r, s) {
+  predBins <- get_predicted_bins(df, today, k, n, r, s)
   allDf <- df[df$date == today, ]
   lookDf <- allDf[allDf$bin %in% predBins, ]
   captureRate <- sum(lookDf$num_crimes) / sum(allDf$num_crimes)
@@ -113,14 +113,15 @@ get_achieved_capture_rate <- function(df, today, k, n, r) {
 
 # Gets average capture rate across all dates for K
 # deployments using data from DF of crime totals
-get_average_achieved_capture_rate <- function(df, k) {
-  all_dates = unique(df$OCCURRED)
+get_average_achieved_capture_rate <- function(df, k, n, r, s) {
+  all_dates = unique(df$date)
   num_dates = length(all_dates)
   total_capture_rate = 0
   for (i in 1:num_dates) {
-    total_capture_rate = total_capture_rate + get_achieved_capture_rate(df, all_dates[i], k)
+    total_capture_rate = total_capture_rate + get_achieved_capture_rate(df, all_dates[i], k, n, r, s)
   }
   average_capture_rate = total_capture_rate / num_dates
+  cat("Finished avg capture rate for r = ", r, "../n")
   return(average_capture_rate)
 }
 
@@ -140,3 +141,10 @@ get_average_predpol_capture_rate <- function(df, k, lum_date) {
 
 
 
+# Testing
+rVarious <- 
+  sapply(seq(0, 3, 0.02), function(i) {
+  return(get_average_achieved_capture_rate(oak_agg, 20, 365, i, 0.25))
+})
+
+plot(rVarious)
