@@ -10,3 +10,4 @@
 *.pdfsync
 *.synctex.gz
 
+.Rproj.user
