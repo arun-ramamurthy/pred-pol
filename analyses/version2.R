@@ -2,13 +2,13 @@ library(dplyr)
 library(ggplot2)
 
 # Vaibhav path setwd("/Users/vaibhav/Documents/Year4_Senior/Semester 1/stat157/predictive-policing")
-# Jong path setwd("~/Desktop/School/STAT 157/predictive-policing")
+# Jong path 
+setwd("~/Desktop/School/STAT 157/predictive-policing")
 
 oak <- read.csv("01_import/input/drug_crimes_with_bins.csv")
 oak$OCCURRED <- as.Date(as.character(oak$OCCURRED), format = "%m/%d/%y")
 oak_grid <- readRDS("01_import/input/oakland_grid_data.rds")
 oak_outline <- readRDS("01_import/input/oakland_outline.rds")
-
 touching_dict <- readRDS("analyses/bin_touching_dictionary.rds")
 
 oak_agg <- oak %>%
@@ -62,12 +62,12 @@ get_highest_bin_scores <- function(trailing_df, date, r) {
 }
 
 # Get predicted bins for deployment of K police on DATE using
-# data from N days ahead using R rate of discounting
+# data from N days trailing using R rate of discounting
 get_predicted_bins <- function(date, k, n, r) {
   date <- as.Date(date)
   t <- get_trailing_table(oak_agg, date, n)
   bin_scores <- get_highest_bin_scores(t, date, r)
-  return(bin_scores[1:k,])
+  return(bin_scores$bin[1:k])
 }
 
 # Gets the best capture rate achievable on TODAY given
@@ -79,14 +79,20 @@ get_maximal_capture <- function(df, today, k) {
   if (length(df$bin) < k) {
     return(1)
   } else {
-    return(NA) ##EDIT
+    total_crime <- sum(df$num_crimes)
+    captured_crime <- sum(df$num_crimes[1:k])
+    if (total_crime == 0) {
+      return(0)
+    } else {
+      return(captured_crime/total_crime)
+    }
   }
 }
 
 # Gets capture rate of model had we deployed K officers
 # on TODAY using data from DF of crime totals
 get_achieved_capture_rate <- function(df, today, k) {
-  return(NA)
+  
 }
 
 # Gets average capture rate across all dates for K
