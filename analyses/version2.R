@@ -162,10 +162,8 @@ get_average_predpol_capture_rate <- function(df, k, lum_data) {
     total_capture_rate = total_capture_rate + get_predpol_capture_rate(df, all_dates[i], k, lum_data)
   }
   average_capture_rate = total_capture_rate / num_dates
+  return(average_capture_rate)
 }
-
-
-
 
 # Testing
 rVarious <- 
