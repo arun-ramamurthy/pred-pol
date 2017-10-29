@@ -154,8 +154,14 @@ get_predpol_capture_rate <- function(df, today, k, lum_data) {
 
 # Get average capture rate of predpol for K deployments
 # using data from DF of crime totalsand predicted bins using LUM_DATA
-get_average_predpol_capture_rate <- function(df, k, lum_date) {
-  return(NA)
+get_average_predpol_capture_rate <- function(df, k, lum_data) {
+  all_dates = unique(df$date)
+  num_dates = length(all_dates)
+  total_capture_rate = 0
+  for (i in 1:num_dates) {
+    total_capture_rate = total_capture_rate + get_predpol_capture_rate(df, all_dates[i], k, lum_data)
+  }
+  average_capture_rate = total_capture_rate / num_dates
 }
 
 
