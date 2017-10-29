@@ -178,4 +178,4 @@ rVarious <-
 
 save(rVarious, file = "expRRates.RData")
 
-plot(seq(0, 1, 0.1), rVarious)
+plot(seq(0, 0.1, 0.01), rVarious)
