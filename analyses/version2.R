@@ -3,7 +3,7 @@ library(ggplot2)
 
 # Vaibhav path setwd("/Users/vaibhav/Documents/Year4_Senior/Semester 1/stat157/predictive-policing")
 # Jong path 
-setwd("~/Desktop/School/STAT 157/predictive-policing")
+setwd("~/code/predictive-policing")
 
 oak <- read.csv("01_import/input/drug_crimes_with_bins.csv")
 oak$OCCURRED <- as.Date(as.character(oak$OCCURRED), format = "%m/%d/%y")
@@ -108,11 +108,30 @@ get_average_achieved_capture_rate <- function(df, k) {
   return(average_capture_rate)
 }
 
-# Get's capture rate of Kristian's model for K
+######################
+# PREDPOL Processing #
+######################
+
+predpol_preds = read.csv("02_run_predictive_policing/output/predpol_drug_predictions.csv", header=TRUE, sep=",")
+
+# Gets capture rate of Kristian's model for K
 # deployments using date from DF of crime totals
 # on TODAY and predicted bins using LUM_DATA
 get_predpol_capture_rate <- function(df, today, k, lum_data) {
-  return(NA)
+  formatted_date = format(as.Date(c(today)), format="%Y.%m.%d")
+  bin_indexes = sort.int(lum_data[paste("X", formatted_date, sep="")][[1]], index.return=TRUE, decreasing=TRUE)[[2]]
+  df <- filter(df, OCCURRED == today)[bin_indexes,]
+  if (length(df$bin) < k) {
+    return(1)
+  } else {
+    total_crime <- sum(df$num_crimes)
+    captured_crime <- sum(df$num_crimes[1:k])
+    if (total_crime == 0) {
+      return(0)
+    } else {
+      return(captured_crime/total_crime)
+    }
+  }
 }
 
 # Get average capture rate of predpol for K deployments
