@@ -3,13 +3,14 @@ library(ggplot2)
 
 # Vaibhav path setwd("/Users/vaibhav/Documents/Year4_Senior/Semester 1/stat157/predictive-policing")
 # Jong path 
-setwd("~/code/predictive-policing")
+# Evan setwd("~/code/predictive-policing")
 
 oak <- read.csv("01_import/input/drug_crimes_with_bins.csv")
 oak$OCCURRED <- as.Date(as.character(oak$OCCURRED), format = "%m/%d/%y")
 oak_grid <- readRDS("01_import/input/oakland_grid_data.rds")
 oak_outline <- readRDS("01_import/input/oakland_outline.rds")
 touching_dict <- readRDS("analyses/bin_touching_dictionary.rds")
+predpol_preds <- read.csv("02_run_predictive_policing/output/predpol_drug_predictions.csv", header=TRUE, sep=",")
 
 oak_agg <- oak %>%
   group_by(bin, OCCURRED) %>%
@@ -127,8 +128,6 @@ get_average_achieved_capture_rate <- function(df, k, n, r, s) {
 ######################
 # PREDPOL Processing #
 ######################
-
-predpol_preds = read.csv("02_run_predictive_policing/output/predpol_drug_predictions.csv", header=TRUE, sep=",")
 
 # Gets capture rate of Kristian's model for K
 # deployments using date from DF of crime totals
