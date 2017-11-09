@@ -46,6 +46,7 @@ plotBin <- function(bin_num) {
 # sorted by descending number of crimes
 # Note: Date needs to be formated as: "YYYY-MM-DD"
 get_trailing_table <- function(df, date, n) {
+  date <- as.Date(date)
   usedf <- df[(df$date >= (date - n)) & (df$date < date), ]
   output <- 
     usedf %>%
