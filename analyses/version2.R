@@ -108,25 +108,27 @@ get_achieved_capture_rate <- function(df, today, k, n, r, s) {
   predBins <- get_predicted_bins(df, today, k, n, r, s)
   allDf <- df[df$date == today, ]
   lookDf <- allDf[allDf$bin %in% predBins, ]
-  captureRate <- sum(lookDf$num_crimes) / sum(allDf$num_crimes)
-  return(captureRate)
+  if (nrow(allDf) == 0) {
+    return(1)
+  } else {
+    captureRate <- sum(lookDf$num_crimes) / sum(allDf$num_crimes)
+    return(captureRate)  
+  }
 }
 
 # Gets average capture rate across all dates for K
 # deployments using data from DF of crime totals
-get_average_achieved_capture_rate <- function(df, k, n, r, s, date) {
-  all_dates = date
-  #all_dates = unique(df$date)
-  num_dates = length(all_dates)
-  total_capture_rate = 0
+get_average_achieved_capture_rate <- function(df, k, n, r, s, date_samp) {
+  print(paste0("Getting r = ", r, ", s = ", s))
+  start <- Sys.time()
+  num_dates <- length(date_samp)
+  total_capture_rate <- 0
   for (i in 1:num_dates) {
-    total_capture_rate = total_capture_rate + get_achieved_capture_rate(df, all_dates[i], k, n, r, s)
-    if (i %% 10 == 0) {
-      cat("Finished", i, "th date for this", r, "iteration..\n")
-    }
+    total_capture_rate = total_capture_rate + get_achieved_capture_rate(df, date_samp[i], k, n, r, s)
   }
   average_capture_rate = total_capture_rate / num_dates
-  cat("Finished avg capture rate for r = ", r, "..\n")
+  end <- Sys.time()
+  print(end - start)
   return(average_capture_rate)
 }
 
@@ -171,13 +173,20 @@ get_average_predpol_capture_rate <- function(df, k, lum_data) {
 
 
 # Testing
-set.seed(2)
+set.seed(1893)
+
 sampDates <- base::sample(unique(oak_agg$date), size = 50)
-rVarious <- 
+rVariousR <- 
   sapply(seq(0, 0.1, 0.01), function(i) {
   return(get_average_achieved_capture_rate(oak_agg, 20, 365, i, 0.25, sampDates))
 })
 
-save(rVarious, file = "expRRates.RData")
+rVariousS <- 
+  sapply(seq(0, 0.5, 0.05), function(i) {
+    return(get_average_achieved_capture_rate(oak_agg, 20, 365, 0.02, i, sampDates))
+  })
 
-plot(seq(0, 0.1, 0.01), rVarious)
+# save(rVarious, file = "expRRates.RData")
+
+plot(seq(0, 0.1, 0.01), rVariousR, main = "Optimal R")
+plot(seq(0, 0.5, 0.05), rVariousS, main = "Optimal S")
