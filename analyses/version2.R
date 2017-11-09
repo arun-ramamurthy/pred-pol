@@ -93,13 +93,17 @@ get_maximal_capture <- function(df, today, k) {
     filter(date == today) %>%
     arrange(desc(num_crimes))
   if (nrow(df) == 0) {
-    return(0)
+    return(1)
   } else if (nrow(df) < k) {
     return(1)
   } else {
     total_crime <- sum(df$num_crimes)
     captured_crime <- sum(df$num_crimes[1:k])
-    return(captured_crime/total_crime)
+    if (total_crime == 0) {
+      return(1)
+    } else {
+      return(captured_crime/total_crime)
+    }
   }
 }
 
@@ -165,8 +169,7 @@ get_average_predpol_capture_rate <- function(df, k, lum_data) {
   all_dates = unique(df$date)
   num_dates = length(all_dates)
   total_capture_rate = 0
-  for (i in 1:num_dates-1) {
-    print(all_dates[[i]])
+  for (i in 1:num_dates) {
     total_capture_rate = total_capture_rate + get_predpol_capture_rate(df, all_dates[i], k, lum_data)
   }
   average_capture_rate = total_capture_rate / num_dates
