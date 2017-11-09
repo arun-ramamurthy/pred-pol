@@ -7,6 +7,7 @@ library(ggplot2)
 # Jong path setwd("~/Desktop/School/STAT 157/predictive-policing")
 
 oak <- read.csv("01_import/input/drug_crimes_with_bins.csv")
+oak$date = oak$OCCURRED
 oak$OCCURRED <- as.Date(as.character(oak$OCCURRED), format = "%m/%d/%y")
 oak_grid <- readRDS("01_import/input/oakland_grid_data.rds")
 oak_outline <- readRDS("01_import/input/oakland_outline.rds")
@@ -65,8 +66,8 @@ get_bin_scores <- function(trailing_df, date, r) {
 
 get_predicted_bins_helper <- function(bin, bin_scores, s) {
   neighbors <- get_neighbors(bin)
-  final <- s*sum(bin_scores$bin_score[which(bin_scores$bin %in% neighbors)]) +
-    bin_scores$bin_score[which(bin_scores$bin == bin)]
+  final <- 0.25*sum(bin_scores$bin_score[which(bin_scores$bin %in% neighbors)]) +
+    0.75*bin_scores$bin_score[which(bin_scores$bin == bin)]
   return(final)
 }
 
@@ -141,15 +142,17 @@ get_average_achieved_capture_rate <- function(df, k, n, r, s, date_samp) {
 # on TODAY and predicted bins using LUM_DATA
 get_predpol_capture_rate <- function(df, today, k, lum_data) {
   formatted_date = format(as.Date(c(today)), format="%Y.%m.%d")
-  bin_indexes = sort.int(lum_data[paste("X", formatted_date, sep="")][[1]], index.return=TRUE, decreasing=TRUE)[[2]]
-  df <- filter(df, OCCURRED == today)[bin_indexes,]
-  if (length(df$bin) < k) {
+  bin_scores = lum_data[paste("X", formatted_date, sep="")][[1]]
+  filtered_df = filter(df, date == today)
+  filtered_df$scores = bin_scores[filtered_df$bin]
+  filtered_df = filtered_df %>% arrange(desc(scores))
+  if (length(filtered_df$bin) < k) {
     return(1)
   } else {
-    total_crime <- sum(df$num_crimes)
-    captured_crime <- sum(df$num_crimes[1:k])
+    total_crime <- sum(filtered_df$num_crimes)
+    captured_crime <- sum(filtered_df$num_crimes[1:k])
     if (total_crime == 0) {
-      return(0)
+      return(1)
     } else {
       return(captured_crime/total_crime)
     }
@@ -162,15 +165,13 @@ get_average_predpol_capture_rate <- function(df, k, lum_data) {
   all_dates = unique(df$date)
   num_dates = length(all_dates)
   total_capture_rate = 0
-  for (i in 1:num_dates) {
+  for (i in 1:num_dates-1) {
+    print(all_dates[[i]])
     total_capture_rate = total_capture_rate + get_predpol_capture_rate(df, all_dates[i], k, lum_data)
   }
   average_capture_rate = total_capture_rate / num_dates
+  return(average_capture_rate)
 }
-
-
-
-
 
 # Testing
 set.seed(1893)
