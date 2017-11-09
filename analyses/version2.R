@@ -150,7 +150,7 @@ get_predpol_capture_rate <- function(df, today, k, lum_data) {
   filtered_df = filter(df, date == today)
   filtered_df$scores = bin_scores[filtered_df$bin]
   filtered_df = filtered_df %>% arrange(desc(scores))
-  if (length(filtered_df$bin) < k) {
+  if (nrow(filtered_df) < k) {
     return(1)
   } else {
     total_crime <- sum(filtered_df$num_crimes)
