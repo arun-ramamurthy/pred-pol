@@ -169,23 +169,28 @@ get_average_predpol_capture_rate <- function(df, k, lum_data, date_samp) {
   return(mean(capture_rates))
 }
 
-# Testing
+###############
+### TESTING ###
+###############
+
 set.seed(1893)
 
 sampDates <- base::sample(seq(as.Date("2010-12-28"), as.Date("2011-04-05"), by = 1), size = 50)
-rVariousR <- 
-  sapply(seq(0, 0.1, 0.01), function(i) {
-  return(get_average_achieved_capture_rate(oak_agg, 20, 365, i, 0.25, sampDates))
-})
 
-rVariousS <- 
-  sapply(seq(0, 0.5, 0.05), function(i) {
-    return(get_average_achieved_capture_rate(oak_agg, 20, 365, 0.02, i, sampDates))
-  })
-
+our_capture <- get_average_achieved_capture_rate(oak_agg, 20, 365, 0.02, 0,sampDates)
 predPol_capture <- get_average_predpol_capture_rate(oak_agg, 3, predpol_preds, sampDates)
 
-# save(rVarious, file = "expRRates.RData")
+# variousR <- 
+#   sapply(seq(0, 0.1, 0.01), function(i) {
+#   return(get_average_achieved_capture_rate(oak_agg, 20, 365, i, 0.25, sampDates))
+# })
+# 
+# variousS <- 
+#   sapply(seq(0, 0.5, 0.05), function(i) {
+#     return(get_average_achieved_capture_rate(oak_agg, 20, 365, 0.02, i, sampDates))
+#   })
 
-plot(seq(0, 0.1, 0.01), rVariousR, main = "Optimal R")
-plot(seq(0, 0.5, 0.05), rVariousS, main = "Optimal S")
+# save(rVarious, file = "expRRates.RData")
+# 
+# plot(seq(0, 0.1, 0.01), variousR, main = "Optimal R")
+# plot(seq(0, 0.5, 0.05), variousS, main = "Optimal S")
