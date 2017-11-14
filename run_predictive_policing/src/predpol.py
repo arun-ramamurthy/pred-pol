@@ -108,9 +108,9 @@ def runEM(data, T, pred_date, k=20,
 
         # deprecate?
         # I did this when I was debugging so that it wouldn't run away
-        # if omega > T * 1000:
-        #    omega = omega_last
-        assert omega < T * 1000
+        if omega > T * 1000:
+            omega = omega_last
+        # assert omega < T * 1000
 
     # get conditional intensity for selected parameters
     # need to add on latest date

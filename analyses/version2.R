@@ -7,6 +7,7 @@ library(ggplot2)
 # Jong path setwd("~/Desktop/School/STAT 157/predictive-policing")
 
 oak <- read.csv("01_import/input/drug_crimes_with_bins.csv")
+oak$date = oak$OCCURRED
 oak$OCCURRED <- as.Date(as.character(oak$OCCURRED), format = "%m/%d/%y")
 oak_grid <- readRDS("01_import/input/oakland_grid_data.rds")
 oak_outline <- readRDS("01_import/input/oakland_outline.rds")
@@ -65,8 +66,8 @@ get_bin_scores <- function(trailing_df, date, r) {
 
 get_predicted_bins_helper <- function(bin, bin_scores, s) {
   neighbors <- get_neighbors(bin)
-  final <- s*sum(bin_scores$bin_score[which(bin_scores$bin %in% neighbors)]) +
-    bin_scores$bin_score[which(bin_scores$bin == bin)]
+  final <- 0.25*sum(bin_scores$bin_score[which(bin_scores$bin %in% neighbors)]) +
+    0.75*bin_scores$bin_score[which(bin_scores$bin == bin)]
   return(final)
 }
 
@@ -92,13 +93,17 @@ get_maximal_capture <- function(df, today, k) {
     filter(date == today) %>%
     arrange(desc(num_crimes))
   if (nrow(df) == 0) {
-    return(0)
+    return(1)
   } else if (nrow(df) < k) {
     return(1)
   } else {
     total_crime <- sum(df$num_crimes)
     captured_crime <- sum(df$num_crimes[1:k])
-    return(captured_crime/total_crime)
+    if (total_crime == 0) {
+      return(1)
+    } else {
+      return(captured_crime/total_crime)
+    }
   }
 }
 
@@ -108,26 +113,25 @@ get_achieved_capture_rate <- function(df, today, k, n, r, s) {
   predBins <- get_predicted_bins(df, today, k, n, r, s)
   allDf <- df[df$date == today, ]
   lookDf <- allDf[allDf$bin %in% predBins, ]
-  captureRate <- sum(lookDf$num_crimes) / sum(allDf$num_crimes)
-  return(captureRate)
+  if (nrow(allDf) == 0) {
+    return(1)
+  } else {
+    captureRate <- sum(lookDf$num_crimes) / sum(allDf$num_crimes)
+    return(captureRate)  
+  }
 }
 
 # Gets average capture rate across all dates for K
 # deployments using data from DF of crime totals
-get_average_achieved_capture_rate <- function(df, k, n, r, s, date) {
-  all_dates = date
-  #all_dates = unique(df$date)
-  num_dates = length(all_dates)
-  total_capture_rate = 0
-  for (i in 1:num_dates) {
-    total_capture_rate = total_capture_rate + get_achieved_capture_rate(df, all_dates[i], k, n, r, s)
-    if (i %% 10 == 0) {
-      cat("Finished", i, "th date for this", r, "iteration..\n")
-    }
-  }
-  average_capture_rate = total_capture_rate / num_dates
-  cat("Finished avg capture rate for r = ", r, "..\n")
-  return(average_capture_rate)
+get_average_achieved_capture_rate <- function(df, k, n, r, s, date_samp) {
+  print(paste0("Getting r = ", r, ", s = ", s))
+  start <- Sys.time()
+  capture_rates <- sapply(date_samp, function(date) {
+    get_achieved_capture_rate(df, date, k, n, r, s)
+  })
+  end <- Sys.time()
+  print(end - start)
+  return(mean(capture_rates))
 }
 
 ######################
@@ -139,45 +143,54 @@ get_average_achieved_capture_rate <- function(df, k, n, r, s, date) {
 # on TODAY and predicted bins using LUM_DATA
 get_predpol_capture_rate <- function(df, today, k, lum_data) {
   formatted_date = format(as.Date(c(today)), format="%Y.%m.%d")
-  bin_indexes = sort.int(lum_data[paste("X", formatted_date, sep="")][[1]], index.return=TRUE, decreasing=TRUE)[[2]]
-  df <- filter(df, OCCURRED == today)[bin_indexes,]
-  if (length(df$bin) < k) {
+  bin_scores = lum_data[paste("X", formatted_date, sep="")][[1]]
+  binPreds <- data.frame(1:length(bin_scores), bin_scores)
+  names(binPreds) <- c("bin","lumScore")
+  binPreds <- binPreds %>%
+    arrange(desc(lumScore))
+  bin_final_preds <- binPreds$bin[1:k]
+  filtered_df = filter(df, date == today)
+  lookDf <- filtered_df[filtered_df$bin %in% bin_final_preds, ]
+  if (nrow(filtered_df) == 0) {
     return(1)
   } else {
-    total_crime <- sum(df$num_crimes)
-    captured_crime <- sum(df$num_crimes[1:k])
-    if (total_crime == 0) {
-      return(0)
-    } else {
-      return(captured_crime/total_crime)
-    }
+    total_crime <- sum(filtered_df$num_crimes)
+    captured_crime <- sum(lookDf$num_crimes)
+    return(captured_crime/total_crime)
   }
 }
 
 # Get average capture rate of predpol for K deployments
-# using data from DF of crime totalsand predicted bins using LUM_DATA
-get_average_predpol_capture_rate <- function(df, k, lum_data) {
-  all_dates = unique(df$date)
-  num_dates = length(all_dates)
-  total_capture_rate = 0
-  for (i in 1:num_dates) {
-    total_capture_rate = total_capture_rate + get_predpol_capture_rate(df, all_dates[i], k, lum_data)
-  }
-  average_capture_rate = total_capture_rate / num_dates
+# using data from DF of crime totals and predicted bins using LUM_DATA
+get_average_predpol_capture_rate <- function(df, k, lum_data, date_samp) {
+  capture_rates <- sapply(date_samp, function(date) {
+    get_predpol_capture_rate(df, date, k, lum_data)
+  })
+  return(mean(capture_rates))
 }
 
+###############
+### TESTING ###
+###############
 
+set.seed(1893)
 
+sampDates <- base::sample(seq(as.Date("2010-12-28"), as.Date("2011-04-05"), by = 1), size = 50)
 
+our_capture <- get_average_achieved_capture_rate(oak_agg, 20, 365, 0.02, 0,sampDates)
+predPol_capture <- get_average_predpol_capture_rate(oak_agg, 3, predpol_preds, sampDates)
 
-# Testing
-set.seed(2)
-sampDates <- base::sample(unique(oak_agg$date), size = 50)
-rVarious <- 
-  sapply(seq(0, 0.1, 0.01), function(i) {
-  return(get_average_achieved_capture_rate(oak_agg, 20, 365, i, 0.25, sampDates))
-})
+# variousR <- 
+#   sapply(seq(0, 0.1, 0.01), function(i) {
+#   return(get_average_achieved_capture_rate(oak_agg, 20, 365, i, 0.25, sampDates))
+# })
+# 
+# variousS <- 
+#   sapply(seq(0, 0.5, 0.05), function(i) {
+#     return(get_average_achieved_capture_rate(oak_agg, 20, 365, 0.02, i, sampDates))
+#   })
 
-save(rVarious, file = "expRRates.RData")
-
-plot(seq(0, 0.1, 0.01), rVarious)
+# save(rVarious, file = "expRRates.RData")
+# 
+# plot(seq(0, 0.1, 0.01), variousR, main = "Optimal R")
+# plot(seq(0, 0.5, 0.05), variousS, main = "Optimal S")
