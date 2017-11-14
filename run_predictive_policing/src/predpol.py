@@ -40,6 +40,7 @@ def calc_tij(data):
     return tij
 
 
+# Calculates g() for each bin, in time i, j (the prob. kernel)
 def calc_pij(tij, theta, omega):
     pij = dict()
     for n in tij:
@@ -47,10 +48,11 @@ def calc_pij(tij, theta, omega):
         for i, j in lower_tri_ij(tij[n].shape[0]):
             if tij[n][i, j] > 0:
                 e_part = np.exp(-omega * tij[n][i, j])
-                pij[n][i, j] = e_part * theta * omega
+                pij[n][i, j] = e_part * theta * omega # this is the g() in ETAS paper
     return pij
 
 
+# Gives pji in the ETAS paper (g() / lambda)
 def estep(data, mu, theta, omega, tij):
     # t these asserts are fast and document the common structure
     assert data.keys() == mu.keys()
@@ -59,6 +61,8 @@ def estep(data, mu, theta, omega, tij):
     pij = calc_pij(tij, theta, omega)
     for n in data:
         # should possibly append a 1 to the front of this
+
+        # denom = lambda in ETAS = background + all the probs (kernels) in a given bin for all the time delays
         denom = mu[n] + pij[n].sum(axis=1)
         pj[n] = mu[n] / denom
         pij[n] = pij[n] / denom

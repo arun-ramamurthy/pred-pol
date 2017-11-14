@@ -2,7 +2,6 @@ library(dplyr)
 library(ggplot2)
 
 # Vaibhav path setwd("/Users/vaibhav/Documents/Year4_Senior/Semester 1/stat157/predictive-policing")
-# Jong path 
 # Evan setwd("~/code/predictive-policing")
 # Jong path setwd("~/Desktop/School/STAT 157/predictive-policing")
 
