@@ -176,7 +176,7 @@ set.seed(1893)
 
 sampDates <- base::sample(seq(as.Date("2010-12-28"), as.Date("2011-12-30"), by = 1), size = 100)
 
-our_capture <- get_average_achieved_capture_rate(oak_agg, 20, 365, 0.02, 0, sampDates)
+our_capture <- get_average_achieved_capture_rate(oak_agg, 20, 365, 0.02, 0.5, sampDates)
 predPol_capture <- get_average_predpol_capture_rate(oak_agg, 3, predpol_preds, sampDates)
 
 our_capture
