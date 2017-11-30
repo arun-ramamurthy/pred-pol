@@ -1,5 +1,14 @@
 library(dplyr)
 library(ggplot2)
+library(tidyverse)
+
+# Vaibhav path setwd("/Users/vaibhav/Documents/Year4_Senior/Semester 1/stat157/predictive-policing")
+# Evan setwd("~/code/predictive-policing")
+# Jong path setwd("~/Desktop/School/STAT 157/predictive-policing")
+
+############
+### DATA ###
+############
 
 oak <- read.csv("01_import/input/drug_crimes_with_bins.csv")
 oak <- oak %>% rename(date=OCCURRED)
@@ -140,13 +149,14 @@ get_achieved_capture_rate <- function(df, today, k, n, r, s) {
 # Gets average capture rate across all dates for K
 # deployments using data from DF of crime totals
 get_average_achieved_capture_rate <- function(date_samp, df, k, n, r, s) {
-  # print(paste0("Getting r = ", r, ", s = ", s))
+  print(paste0("Getting r = ", r, ", s = ", s))
   start <- Sys.time()
   capture_rates <- sapply(date_samp, function(date) {
     get_achieved_capture_rate(df, date, k, n, r, s)
   })
   end <- Sys.time()
-  # print(end - start)
+  print(paste0("Time: ", end - start))
+  print(paste0("Result: ", round(mean(capture_rates), 4)))
   return(mean(capture_rates))
 }
 
@@ -184,3 +194,38 @@ get_average_predpol_capture_rate <- function(df, k, lum_data, date_samp) {
   })
   return(mean(capture_rates))
 }
+
+########################
+### PARAMETER TUNING ###
+########################
+
+params <- list(r = seq(from = 0, to = 0.2, by = 0.02),
+               s = seq(from = 0, to = 0.5, by = 0.05)) %>%
+  cross_df()
+
+set.seed(157)
+sampDates <- base::sample(seq(as.Date("2010-12-28"), as.Date("2011-12-30"), by = 1), size = 50)
+mod <- function(r, s) {
+  get_average_achieved_capture_rate(sampDates, oak_agg, 20, 365, r, s)
+}
+
+# params <- params %>% mutate(capture_rate = pmap(params, mod))
+
+# capture_rate <- mapply(mod, params$r, params$s)
+
+library(parallel)
+
+# Number of cores
+nCores <- detectCores() - 1
+
+# Creating cluster
+clust <- makeCluster(nCores)
+
+# create matrix of parameters
+p <- as.matrix(params)
+
+# exporting functions to cluster
+clusterExport(clust, list("get_average_achieved_capture_rate"))
+
+# Parallelized apply
+capture_rate <- parRapply(clust, p, mod)
