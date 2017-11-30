@@ -65,8 +65,8 @@ get_bin_scores <- function(trailing_df, date, r) {
 
 get_predicted_bins_helper <- function(bin, bin_scores, s) {
   neighbors <- get_neighbors(bin)
-  final <- 0.25*sum(bin_scores$bin_score[which(bin_scores$bin %in% neighbors)]) +
-    0.75*bin_scores$bin_score[which(bin_scores$bin == bin)]
+  final <- s*sum(bin_scores$bin_score[which(bin_scores$bin %in% neighbors)]) +
+    (1-s)*bin_scores$bin_score[which(bin_scores$bin == bin)]
   return(final)
 }
 
@@ -123,13 +123,13 @@ get_achieved_capture_rate <- function(df, today, k, n, r, s) {
 # Gets average capture rate across all dates for K
 # deployments using data from DF of crime totals
 get_average_achieved_capture_rate <- function(df, k, n, r, s, date_samp) {
-  print(paste0("Getting r = ", r, ", s = ", s))
+  # print(paste0("Getting r = ", r, ", s = ", s))
   start <- Sys.time()
   capture_rates <- sapply(date_samp, function(date) {
     get_achieved_capture_rate(df, date, k, n, r, s)
   })
   end <- Sys.time()
-  print(end - start)
+  # print(end - start)
   return(mean(capture_rates))
 }
 
@@ -168,31 +168,3 @@ get_average_predpol_capture_rate <- function(df, k, lum_data, date_samp) {
   return(mean(capture_rates))
 }
 
-###############
-### TESTING ###
-###############
-
-set.seed(1893)
-
-sampDates <- base::sample(seq(as.Date("2010-12-28"), as.Date("2011-12-30"), by = 1), size = 100)
-
-our_capture <- get_average_achieved_capture_rate(oak_agg, 20, 365, 0.02, 0.5, sampDates)
-predPol_capture <- get_average_predpol_capture_rate(oak_agg, 3, predpol_preds, sampDates)
-
-our_capture
-predPol_capture
-
-# variousR <- 
-#   sapply(seq(0, 0.1, 0.01), function(i) {
-#   return(get_average_achieved_capture_rate(oak_agg, 20, 365, i, 0.25, sampDates))
-# })
-# 
-# variousS <- 
-#   sapply(seq(0, 0.5, 0.05), function(i) {
-#     return(get_average_achieved_capture_rate(oak_agg, 20, 365, 0.02, i, sampDates))
-#   })
-
-# save(rVarious, file = "expRRates.RData")
-# 
-# plot(seq(0, 0.1, 0.01), variousR, main = "Optimal R")
-# plot(seq(0, 0.5, 0.05), variousS, main = "Optimal S")
