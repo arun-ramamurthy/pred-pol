@@ -1,6 +1,5 @@
 library(dplyr)
 library(ggplot2)
-setwd("../")
 
 oak <- read.csv("01_import/input/drug_crimes_with_bins.csv")
 oak <- oak %>% rename(date=OCCURRED)
@@ -15,10 +14,6 @@ oak_agg <- oak %>%
   summarize(num_crimes = n(), mean_lag = mean(LAG)) %>%
   ungroup()
 
-# Takes in aggregated DF (oak_agg) and returns data.frame
-# containing total number of crimes over last N days
-# before DATE (exclusive)
-# Note: Date needs to be formated as: "YYYY-MM-DD"
 get_trailing_table <- function(df, date, n) {
   # Takes in a dataframe containing date/num_crimes data and returns
   # another dataframe containing the total number of crimes over the last
@@ -38,15 +33,24 @@ get_trailing_table <- function(df, date, n) {
   return(df)
 }
 
-# Calculates kernelized bin score for BIN_NUM
-# using crimes that fall within date range of DF
-# where TODAY is today's date using exponential kernel
-# (e^-r(T-t)) with r = R.
 get_bin_score <- function(bin_num, df, today, r) {
+  # Takes in a dataframe containing date/bin_num/num_crimes data, and bin_num
+  # and returns the bin score for the specific bin, weighted by
+  # exponential decay.
+  #
+  # Args:
+  #   bin_num: Bin number to compute score for.
+  #   df: Data frame containing date/bin_num/num_crimes data.
+  #   today: Date to compute score for "YYYY-MM-DD".
+  #
+  # Returns:
+  #   A single float denoting the bin score computed.
   today <- as.Date(today)
   df <- df %>%
     filter(bin == bin_num) %>%
-    mutate(bin_score = num_crimes*exp(-r*as.numeric(today - date)))
+    mutate(delta_days = as.numeric(today - date)) %>%
+    mutate(bin_score = num_crimes * exp(-r * delta_days))
+
   return(sum(df$bin_score))
 }
 
@@ -56,10 +60,23 @@ get_bin_score <- function(bin_num, df, today, r) {
 # Returned table should be arranged by descending value
 # of kernelized number of crimes (bin_score)
 # Note: Date needs to be formated as: "YYYY-MM-DD"
-get_bin_scores <- function(trailing_df, date, r) {
-  bin <- unique(trailing_df$bin)[!is.na(unique(trailing_df$bin))]
-  bin_score <- sapply(bin, get_bin_score, trailing_df, date, r)
+get_bin_scores <- function(df, date, r) {
+  # Applies get_bin_score to every single bin in a dataframe.
+  #
+  # Args:
+  #   df: Data frame containing data points.
+  #   date: Date to compute score for "YYYY-MM-DD".
+  #   r: Decay rate for exponential kernel.
+  #
+  # Returns:
+  #   A dataframe with a bin_score for each bin.
+  
+  unique_bins <- unique(df$bin)
+  unique_bins <- unique_bins[!is.na(unique_bins)]
+  
+  bin_score <- sapply(bin, get_bin_score, df, date, r)
   output <- data.frame(bin, bin_score)
+
   return(output %>% arrange(desc(bin_score)))
 }
 
