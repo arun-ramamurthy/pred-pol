@@ -1,4 +1,4 @@
-source('analyses/version2.R')
+source('analyses/model.R')
 
 set.seed(1543)
 
