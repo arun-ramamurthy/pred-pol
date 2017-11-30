@@ -3,42 +3,46 @@ library(tidyverse)
 # Vaibhav path setwd("/Users/vaibhav/Documents/Year4_Senior/Semester 1/stat157/predictive-policing")
 # Evan setwd("~/code/predictive-policing")
 # Jong path setwd("~/Desktop/School/STAT 157/predictive-policing")
+setwd("../")
 
 ############
 ### DATA ###
 ############
 
 oak <- read.csv("01_import/input/drug_crimes_with_bins.csv")
-oak$date = oak$OCCURRED
-oak$OCCURRED <- as.Date(as.character(oak$OCCURRED), format = "%m/%d/%y")
+oak <- oak %>% rename(date=OCCURRED)
+oak$date <- as.Date(as.character(oak$date), format = "%m/%d/%y")
 oak_grid <- readRDS("01_import/input/oakland_grid_data.rds")
 oak_outline <- readRDS("01_import/input/oakland_outline.rds")
 touching_dict <- readRDS("analyses/bin_touching_dictionary.rds")
 predpol_preds <- read.csv("02_run_predictive_policing/output/predpol_drug_predictions.csv", header=TRUE, sep=",")
 
 oak_agg <- oak %>%
-  group_by(bin, OCCURRED) %>%
+  group_by(bin, date) %>%
   summarize(num_crimes = n(), mean_lag = mean(LAG)) %>%
-  arrange(bin) %>%
-  rename(date = OCCURRED) %>%
   ungroup()
 
 # Takes in aggregated DF (oak_agg) and returns data.frame
 # containing total number of crimes over last N days
-# before DATE (not inclusive), per bin (grid)
+# before DATE (exclusive)
 # Note: Date needs to be formated as: "YYYY-MM-DD"
 get_trailing_table <- function(df, date, n) {
+  # Takes in a dataframe containing date/num_crimes data and returns
+  # another dataframe containing the total number of crimes over the last
+  # n days before date, per bin.
+  #
+  # Args:
+  #   df: A data frame containing the columns date and num_crimes.
+  #   date: A date string formatted as "YYYY-MM-DD".
+  #   n: The window length (number of days to consider).
+  #
+  # Returns:
+  #   A table containing filtered dates from previous n days
   date <- as.Date(date)
   daterange <- seq(from = date - n, length.out = n, by = 1)
-  usedf <- df %>%
-    filter(date %in% daterange)
-  return(usedf %>%
-           arrange(date, bin))
-}
+  df <- df %>% filter(date %in% daterange)
 
-# Takes in BIN number and returns vector of neighbor bins
-get_neighbors <- function(bin) {
-  touching_dict[[bin]]
+  return(df)
 }
 
 # Calculates kernelized bin score for BIN_NUM
@@ -67,7 +71,7 @@ get_bin_scores <- function(trailing_df, date, r) {
 }
 
 get_predicted_bins_helper <- function(bin, bin_scores, s) {
-  neighbors <- get_neighbors(bin)
+  neighbors <- touching_dict[[bin]]
   final <- s*sum(bin_scores$bin_score[which(bin_scores$bin %in% neighbors)]) +
     (1-s)*bin_scores$bin_score[which(bin_scores$bin == bin)]
   return(final)
@@ -206,8 +210,3 @@ clusterExport(clust, list("get_average_achieved_capture_rate"))
 
 # Parallelized apply
 capture_rate <- parRapply(clust, p, mod)
-
-
-
-
-
