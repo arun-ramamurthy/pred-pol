@@ -186,13 +186,13 @@ params <- list(r = seq(from = 0, to = 0.2, by = 0.02),
 
 set.seed(157)
 sampDates <- base::sample(seq(as.Date("2010-12-28"), as.Date("2011-12-30"), by = 1), size = 50)
-mod <- function(r, s) {
-  get_average_achieved_capture_rate(sampDates, oak_agg, 20, 365, r, s)
+mod <- function(...) {
+  get_average_achieved_capture_rate(sampDates, oak_agg, 20, 365, ...)
 }
 
 # params <- params %>% mutate(capture_rate = pmap(params, mod))
 
-# capture_rate <- mapply(mod, params$r, params$s)
+capture_rate <- mapply(mod, params$r, params$s)
 
 library(parallel)
 
@@ -206,7 +206,15 @@ clust <- makeCluster(nCores)
 p <- as.matrix(params)
 
 # exporting functions to cluster
-clusterExport(clust, list("get_average_achieved_capture_rate"))
+clusterExport(clust, list("get_average_achieved_capture_rate", "sampDates", "oak_agg",
+                          "get_achieved_capture_rate", "get_predicted_bins",
+                          "get_trailing_table", "%>%", "get_bin_scores"))
 
 # Parallelized apply
-capture_rate <- parRapply(clust, p, mod)
+capture_rate <- parRapply(clust, p, function(row) {
+  get_average_achieved_capture_rate(sampDates, oak_agg, 20, 365, row[1], row[2])
+})
+
+
+
+
