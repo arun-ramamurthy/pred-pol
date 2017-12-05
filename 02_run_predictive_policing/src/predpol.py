@@ -24,8 +24,10 @@ def lower_tri_ij(dim):
 
 def lambdafun(t, mu, theta, omega):
     days_til_last = [(t[-1] - ti).days for ti in t[:-1]]
+    # epart = sum of e^(-omega * [1 to last day])
     epart = sum([np.exp(-omega * d) for d in days_til_last])
     return mu + theta * omega * epart
+    # background rate + offspring
 
 
 def calc_tij(data):
@@ -39,18 +41,19 @@ def calc_tij(data):
             tij[n][i, j] = td
     return tij
 
-
+# Calculates g() for each bin, in time i, j (the prob. kernel)
 def calc_pij(tij, theta, omega):
     pij = dict()
     for n in tij:
         pij[n] = np.zeros(tij[n].shape)
         for i, j in lower_tri_ij(tij[n].shape[0]):
             if tij[n][i, j] > 0:
-                e_part = np.exp(-omega * tij[n][i, j])
-                pij[n][i, j] = e_part * theta * omega
+                e_part = np.exp(-omega * tij[n][i, j]) 
+                pij[n][i, j] = e_part * theta * omega # this is the g() in ETAS paper
     return pij
 
-
+# estimate the probility matrix (probability that the event in row i triggered event j (col))
+# Gives pji in the ETAS paper (g() / lambda)
 def estep(data, mu, theta, omega, tij):
     # t these asserts are fast and document the common structure
     assert data.keys() == mu.keys()
@@ -59,11 +62,16 @@ def estep(data, mu, theta, omega, tij):
     pij = calc_pij(tij, theta, omega)
     for n in data:
         # should possibly append a 1 to the front of this
+
+        # divide by vector of row sums of our prob. matrix for bin n (plus mu)
+        # denom = lambda in ETAS = background + all the probs (kernels) in a given bin for all the time delays
         denom = mu[n] + pij[n].sum(axis=1)
         pj[n] = mu[n] / denom
         pij[n] = pij[n] / denom
         pj[n] = np.append(pj[n], 1)
+        # flattens matrix and adds one to end of the list (will have lots of zeroes since lower tri)
     return pij, pj
+
 
 
 # t iterating over a dict means over keys unless otherwise specified
@@ -74,14 +82,32 @@ def mstep(pij, pj, tij, data, T):
     assert data.keys() == pj.keys()
     total_events = sum([len(v) for v in data.values()])
     # double sum: arrays over bins; np.sum whole array at once
+
+    # sum all entries in bin matrix (measure of events being triggered by other events)
+    # how strong contagion is
     sum_pijs = sum([np.sum(pij[n]) for n in pij])
     denom = sum([np.sum(pij[n] * tij[n]) for n in pij])
+
+    # omega is the sum of all bin matrices 
+    # divided by the sum of all bin matrices weighted by the number of days between events i and j
+    # corrected for density in time - measure of how strong contagion is
     omega = sum_pijs / denom
+
+    # theta is the sum of all bin matrices divided by all events that have occured in the window 
+    # (here it is 180 days)
+    # high theta means not concentrated in a single bucket
+    # corrected for total crime in a window - also measures strength of contagion
     theta = sum_pijs / total_events
+
+    # mu is a dictionary whose keys are bins and 
+    # values are the sum of bin matrix n divided by size of window (contagion factor for that bin)
+    # T is window (180)
     mu = dict((n, sum(pj[n]) / T) for n in pj)
+    # check: sum for each bin rather than in total
     # mu = np.ones(num_bins)*sum(mu)  #this is what the paper says to do but
     # this forces the "background rate" to be the same everywhere,
     return omega, theta, mu
+
 
 
 def runEM(data, T, pred_date, k=20,
@@ -94,8 +120,12 @@ def runEM(data, T, pred_date, k=20,
     omega_last = 10 + omega
     theta_last = 10 + theta
     mu_last = dict((key, mu_init + 10) for key in data)
+    # k is making sure that number of bins (number of squares we send cops to) is less than 20
     k = min(num_bins, k)
     tij = calc_tij(data)
+
+
+# stop running the algorithm not much change in omega, theta, or mu
 
     while(abs(omega - omega_last) > tol1 and
           abs(theta - theta_last) > tol2 and
