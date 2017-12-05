@@ -170,10 +170,10 @@ get_maximal_capture <- function(df, today, k) {
     return(1)
   } else {
     total_crime <- sum(df$num_crimes)
-    captured_crime <- sum(df$num_crimes[1:k])
     if (total_crime == 0) {
       return(1)
     } else {
+      captured_crime <- sum(df$num_crimes[1:k])
       return(captured_crime/total_crime)
     }
   }
@@ -193,11 +193,11 @@ get_achieved_capture_rate <- function(df, touching_dict, today, k, n, r, s) {
   # Returns:
   #   Float representing percentage of crime captured by our model for today.
   predBins <- get_predicted_bins(df, touching_dict, today, k, n, r, s)
-  allDf <- df[df$date == today, ]
-  lookDf <- allDf[allDf$bin %in% predBins, ]
+  allDf <- df %>% filter(date == today)
   if (nrow(allDf) == 0) {
     return(1)
   } else {
+    lookDf <- allDf[allDf$bin %in% predBins, ]
     captureRate <- sum(lookDf$num_crimes) / sum(allDf$num_crimes)
     return(captureRate)  
   }
@@ -252,11 +252,11 @@ get_predpol_capture_rate <- function(df, today, k, lum_data) {
   binPreds <- binPreds %>%
     arrange(desc(lumScore))
   bin_final_preds <- binPreds$bin[1:k]
-  filtered_df = filter(df, date == today)
-  lookDf <- filtered_df[filtered_df$bin %in% bin_final_preds, ]
+  filtered_df = df %>% filter(date == today)
   if (nrow(filtered_df) == 0) {
     return(1)
   } else {
+    lookDf <- filtered_df[filtered_df$bin %in% bin_final_preds, ]
     total_crime <- sum(filtered_df$num_crimes)
     captured_crime <- sum(lookDf$num_crimes)
     return(captured_crime/total_crime)
