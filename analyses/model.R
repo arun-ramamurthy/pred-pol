@@ -119,8 +119,8 @@ get_neighbor_adjusted_bin_score <- function(bin, bin_scores, s) {
   # Returns:
   #   A neighbor-adjusted bin score for bin.
   neighbors <- touching_dict[[bin]]
-  final <- s*sum(bin_scores$bin_score[which(bin_scores$bin %in% neighbors)]) +
-    (1-s)*bin_scores$bin_score[which(bin_scores$bin == bin)]
+  final <- s*sum(bin_scores$bin_score[neighbors]) +
+    (1-s)*bin_scores$bin_score[bin]
   return(final)
 }
 
