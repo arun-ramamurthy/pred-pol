@@ -1,6 +1,7 @@
-library(dplyr)
-library(ggplot2)
 library(tidyverse)
+library(sf)
+
+set.seed(157)
 
 # Vaibhav path setwd("/Users/vaibhav/Documents/Year4_Senior/Semester 1/stat157/predictive-policing")
 # Evan setwd("~/code/predictive-policing")
@@ -10,14 +11,28 @@ library(tidyverse)
 ### DATA ###
 ############
 
+# read drug crime data and format field names and types
 oak <- read.csv("01_import/input/drug_crimes_with_bins.csv")
 oak <- oak %>% rename(date=OCCURRED)
 oak$date <- as.Date(as.character(oak$date), format = "%m/%d/%y")
+max_bin <- max(oak$bin, na.rm=TRUE)
+
+# read .RDS file of Oakland grid data and extract list of neighbors
 oak_grid <- readRDS("01_import/input/oakland_grid_data.rds")
-oak_outline <- readRDS("01_import/input/oakland_outline.rds")
-touching_dict <- readRDS("analyses/bin_touching_dictionary.rds")
+oak_bins <- oak_grid %>% st_as_sf
+binIDs = row.names(oak_bins) %>% as.integer()
+touching_dict <- sapply(binIDs, 
+                        function(i){
+                          st_touches(st_geometry(oak_bins) 
+                                               %>% `[[`(i), st_geometry(oak_bins))
+                          }
+                        )
+
+# read table of bin scores from Lum's 
+# implementation of ETAS model
 predpol_preds <- read.csv("02_run_predictive_policing/output/predpol_drug_predictions.csv", header=TRUE, sep=",")
 
+# aggregate crime data to the bin-date level
 oak_agg <- oak %>%
   group_by(bin, date) %>%
   summarize(num_crimes = n(), mean_lag = mean(LAG)) %>%
@@ -25,13 +40,13 @@ oak_agg <- oak %>%
 
 get_trailing_table <- function(df, today, n) {
   # Takes in a dataframe containing date/num_crimes data and returns
-  # another dataframe containing the total number of crimes over the last
-  # n days before date, per bin.
+  # another dataframe containing only crimes that took place within
+  # n days before date, by bin.
   #
   # Args:
   #   df: A data frame containing the columns date and num_crimes.
   #   date: A date string formatted as "YYYY-MM-DD".
-  #   n: The window length (number of days to consider).
+  #   n: Length of trailing window.
   #
   # Returns:
   #   A table containing filtered dates from previous n days
@@ -49,7 +64,8 @@ get_bin_score <- function(bin_num, df, today, r) {
   # Args:
   #   bin_num: Bin number to compute score for.
   #   df: Data frame containing date/bin_num/num_crimes data.
-  #   today: Date to compute score for "YYYY-MM-DD".
+  #   today: A date string formatted as "YYYY-MM-DD".
+  #   r: Decay rate for exponential kernel.
   #
   # Returns:
   #   A single float denoting the bin score computed.
@@ -62,18 +78,15 @@ get_bin_score <- function(bin_num, df, today, r) {
   return(sum(df$bin_score))
 }
 
-# Takes in TRAILING_DF and returns data.frame
-# with bin scores for each bin, with today's date DATE and
-# discounted according to exponential kernel with rate R.
-# Returned table should be arranged by descending value
-# of kernelized number of crimes (bin_score)
-# Note: Date needs to be formated as: "YYYY-MM-DD"
 get_bin_scores <- function(df, date, r) {
-  # Applies get_bin_score to every single bin in a dataframe.
+  # Takes in a data frame outputted from get_trailing_table 
+  # and returns data frame with bin scores for each bin, 
+  # for today's date DATE and discounted according to 
+  # exponential decay with rate R.
   #
   # Args:
-  #   df: Data frame containing data points.
-  #   date: Date to compute score for "YYYY-MM-DD".
+  #   df: Data frame containing date/bin_num/num_crimes data.
+  #   date: A date string formatted as "YYYY-MM-DD".
   #   r: Decay rate for exponential kernel.
   #
   # Returns:
@@ -82,15 +95,29 @@ get_bin_scores <- function(df, date, r) {
   unique_bins <- unique(df$bin)
   unique_bins <- unique_bins[!is.na(unique_bins)]
   
-  bin_score <- sapply(bin, get_bin_score, df, date, r)
-  output <- data.frame(bin, bin_score)
+  bin_score <- sapply(unique_bins, get_bin_score, df, date, r)
+  bin <- 1:max_bin
+  temp <- data.frame(unique_bins, bin_score)
+  output <- data.frame(bin) %>%
+    left_join(temp, by = c("bin"="unique_bins"))
+  output$bin_score[is.na(output$bin_score)] <- 0
 
-  return(output %>% arrange(desc(bin_score)))
+  return(output)
 }
 
-get_predicted_bins_helper <- function(bin, bin_scores, s) {
-  # Function to be sapplied to a bin to compute its score
-  # considering the weighted score of its neighbors.
+get_neighbor_adjusted_bin_score <- function(bin, bin_scores, s) {
+  # Takes in a bin number and table of bin scores
+  # as well as a neighbor coefficient s and returns
+  # the neighbor-adjusted bin score for bin.
+  #
+  # Args:
+  #   bin: Bin number to compute score for.
+  #   bin_scores: Data frame of bin scores, 
+  #     unadjusted for neighbors.
+  #   s: Neighbor coefficient.
+  #
+  # Returns:
+  #   A neighbor-adjusted bin score for bin.
   neighbors <- touching_dict[[bin]]
   final <- s*sum(bin_scores$bin_score[which(bin_scores$bin %in% neighbors)]) +
     (1-s)*bin_scores$bin_score[which(bin_scores$bin == bin)]
@@ -98,27 +125,42 @@ get_predicted_bins_helper <- function(bin, bin_scores, s) {
 }
 
 get_predicted_bins <- function(df, date, k, n, r, s) {
-  # Get bins to deploy police on.
+  # Returns list of predicted bins for deployment.
   #
   # Args:
-  #   df: Data frame containing data points.
-  #   date: Date to compute bins for "YYYY-MM-DD".
-  #   k: Number of police to deploy.
-  #   n: Number of trailing days to consider.
-  #   r: Rate of discounting to use.
-  #   s: Scaling constant applied to scores of neighbor bins.
+  #   df: Data frame containing date/bin_num/num_crimes data.
+  #   date: A date string formatted as "YYYY-MM-DD".
+  #   k: Number of bins to return (number of bins for 
+  #     which police will be deployed).
+  #   n: Length of trailing window.
+  #   r: Decay rate for exponential kernel.
+  #   s: Neighbor coefficient.
+  #
+  # Returns:
+  #   Vector of K bins with the highest neigbor-adjusted bin scores.
   date <- as.Date(date)
   t <- get_trailing_table(df, date, n)
   bin_scores <- get_bin_scores(t, date, r)
   bins <- bin_scores$bin
-  final_score <- sapply(bins, get_predicted_bins_helper, bin_scores, s)
-  new_bin_scores <- data.frame(bins, final_score) %>% arrange(desc(final_score))
+  final_score <- sapply(bins, get_neighbor_adjusted_bin_score, bin_scores, s)
+  new_bin_scores <- data.frame(bins, final_score)
+  new_bin_scores <- new_bin_scores %>%
+    arrange(desc(final_score))
   return(new_bin_scores$bins[1:k])
 }
 
 get_maximal_capture <- function(df, today, k) {
-  # Gets the maximum capture rate achievable for a certain date
-  # and number of deployments.
+  # Gets highest achievable capture rate for today given
+  # k deployments.
+  #
+  # Args:
+  #   df: Data frame containing date/bin_num/num_crimes data.
+  #   today: A date string formatted as "YYYY-MM-DD".
+  #   k: Number of police deployments.
+  #
+  # Returns:
+  #   Float representing percentage of crime captured with
+  #     k most optimal deployments.
   df <- df %>%
     filter(date == today) %>%
     arrange(desc(num_crimes))
@@ -137,9 +179,19 @@ get_maximal_capture <- function(df, today, k) {
   }
 }
 
-# Gets capture rate of model had we deployed K officers
-# on TODAY using data from DF of crime totals
 get_achieved_capture_rate <- function(df, today, k, n, r, s) {
+  # Gets capture rate achieved by our model.
+  #
+  # Args:
+  #   df: Data frame containing date/bin_num/num_crimes data.
+  #   today: A date string formatted as "YYYY-MM-DD".
+  #   k: Number of police deployments.
+  #   n: Length of trailing window.
+  #   r: Decay rate for exponential kernel.
+  #   s: Neighbor coefficient.
+  #
+  # Returns:
+  #   Float representing percentage of crime captured by our model for today.
   predBins <- get_predicted_bins(df, today, k, n, r, s)
   allDf <- df[df$date == today, ]
   lookDf <- allDf[allDf$bin %in% predBins, ]
@@ -151,9 +203,20 @@ get_achieved_capture_rate <- function(df, today, k, n, r, s) {
   }
 }
 
-# Gets average capture rate across all dates for K
-# deployments using data from DF of crime totals
 get_average_achieved_capture_rate <- function(date_samp, df, k, n, r, s) {
+  # Gets capture rate achieved by our model, averaged across all dates in date_samp.
+  #
+  # Args:
+  #   date_samp: Vector of dates, in string format "YYYY-MM-DD".
+  #   df: Data frame containing date/bin_num/num_crimes data.
+  #   k: Number of police deployments.
+  #   n: Length of trailing window.
+  #   r: Decay rate for exponential kernel.
+  #   s: Neighbor coefficient.
+  #
+  # Returns:
+  #   Float representing average percentage of crime captured by our model across
+  #     all days in date_samp.
   print(paste0("Getting r = ", r, ", s = ", s))
   start <- Sys.time()
   capture_rates <- sapply(date_samp, function(date) {
@@ -169,10 +232,19 @@ get_average_achieved_capture_rate <- function(date_samp, df, k, n, r, s) {
 # PREDPOL Processing #
 ######################
 
-# Gets capture rate of Kristian's model for K
-# deployments using date from DF of crime totals
-# on TODAY and predicted bins using LUM_DATA
 get_predpol_capture_rate <- function(df, today, k, lum_data) {
+  # Gets capture rate of Lum's model for K
+  # deployments using date from DF of crime totals
+  # on TODAY and predicted bins using LUM_DATA.
+  #
+  # Args:
+  #   df: Data frame containing date/bin_num/num_crimes data.
+  #   today: A date string formatted as "YYYY-MM-DD".
+  #   k: Number of police deployments.
+  #   lum_data: Data frame of bin_scores from Lum's ETAS model.
+  #
+  # Returns:
+  #   Float representing percentage of crime captured by ETAS model for today.
   formatted_date = format(as.Date(c(today)), format="%Y.%m.%d")
   bin_scores = lum_data[paste("X", formatted_date, sep="")][[1]]
   binPreds <- data.frame(1:length(bin_scores), bin_scores)
@@ -191,9 +263,19 @@ get_predpol_capture_rate <- function(df, today, k, lum_data) {
   }
 }
 
-# Get average capture rate of predpol for K deployments
-# using data from DF of crime totals and predicted bins using LUM_DATA
 get_average_predpol_capture_rate <- function(df, k, lum_data, date_samp) {
+  # Get average capture rate of predpol for K deployments
+  # using data from DF of crime totals and predicted bins using LUM_DATA
+  #
+  # Args:
+  #   df: Data frame containing date/bin_num/num_crimes data.
+  #   k: Number of police deployments.
+  #   lum_data: Data frame of bin_scores from Lum's ETAS model.
+  #   date_samp: Vector of dates, in string format "YYYY-MM-DD".
+  #
+  # Returns:
+  #   Float representing average percentage of crime captured by ETAS model,
+  #     across all days in date_samp.
   capture_rates <- sapply(date_samp, function(date) {
     get_predpol_capture_rate(df, date, k, lum_data)
   })
