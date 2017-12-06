@@ -101,6 +101,10 @@ where:
 Bin Score
 ========================================================
 
+To compute the final bin score, we calculated a weighted sum of the $\textit{historical crime score}$ and the $\textit{neighbor crime scores}$, with weight $\textit{s}$, which we call the neighbor coefficient:
+
+$$score_{i,\tau} = (1-s) \times \sum_{t=1}^{365} e^{-rt} C_{i, \tau - t} + s \times \sum_{n \in N_{i}} \sum_{t=1}^{365} e^{-rt} C_{n, \tau - t}$$
+
 Tuning Our Model
 ========================================================
 
