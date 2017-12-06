@@ -91,8 +91,7 @@ Tuning Our Model
 ========================================================
 
 We performed a grid search to find the optimal parameter set for our exponential decay rate (r) and our neighbor coefficient (s). The results are shown below:
-
-![grid search](presentation_figure/grid_search.jpg)
+![grid search](grid_search.jpg)
 
 Unit Testing Our Model
 ========================================================
