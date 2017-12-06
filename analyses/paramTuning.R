@@ -1,5 +1,7 @@
 source("analyses/model.R")
 
+library(plotly)
+
 ########################
 ### paramTuning.R ######
 ########################
@@ -31,3 +33,5 @@ results <- results %>%
 
 diff <- results[1, 3:(ncol(results) - 1)] - lum_rates
 mean_diff <- apply(diff, 1, mean)
+
+plot_ly(results, type = "heatmap", x = results$r, y = results$s, z = results$mean_capture_rate)
