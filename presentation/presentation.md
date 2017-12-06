@@ -27,7 +27,6 @@ ETAS Models
   
   2) the arrival of parent earthquakes is Poisson-distributed
 
-
 Drawbacks of Current Predictive Policing Models
 ========================================================
 - disproportionately expensive
