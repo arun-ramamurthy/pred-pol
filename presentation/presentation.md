@@ -50,8 +50,6 @@ Data
 - drug_crimes_with_bins.csv ("bin","OCCURRED","LAG")
 - oakland_grid_data.rds (geographical coverage of Oakland bins)
 
-
-
 Conceptual Overview of Model
 ========================================================
 
