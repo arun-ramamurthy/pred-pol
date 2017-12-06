@@ -1,6 +1,6 @@
 Simple Models for Predictive Policing
 ========================================================
-author: John Doe, Jane Doe
+author: Stat 157 Group 1
 date: 2017.12.07
 autosize: true
 font-family: 'Avenir'
@@ -53,18 +53,46 @@ Methodology
 ========================================================
 type: section
 
-
-Intuition
+Description of Data
 ========================================================
 
-
-Our Model
+Conceptual Overview of Model
 ========================================================
 
+Two features that may help us predict in which bins crime may take place:
+
+* Historical data from each bin
+* Historical data from each bin's neighbor bins
+
+We will combine these two to arrive at a $\textit{total bin score}$ for each bin on each date.
+
+Historical Crime Score
+========================================================
+
+To assess today's historical crime score for each bin, we looked at crime data for the trailing 365 days and calculated a weighted sum. The weights were a simple exponential decay function, as shown below:
+
+$$W_{t} = e^{-rt}$$
+
+where $\textit{t}$ is the lag for that particular historical date. Formally, the historical crime score equation is reproduced below:
+
+$$H_{i,\tau} = \sum_{t=1}^{365} W_{t} \times C_{i, \tau - t}$$
+
+where:
+
+* $C_{i, \tau - t}$ = Number of crimes that occurred in bin $\textit{i}$ at time $\textit{\tau - t}$
+* $\tau$ = Today's date
+* $\textit{t}$ = The time lag
+* $\textit{r}$ = The exponential decay rate
+
+Neighbor Crime Score
+========================================================
 
 Tuning Our Model
 ========================================================
 
+We performed a grid search to find the optimal parameter set for our exponential decay rate (r) and our neighbor coefficient (s). The results are shown below:
+
+![grid search](presentation_figure/grid_search.jpg)
 
 Unit Testing Our Model
 ========================================================
