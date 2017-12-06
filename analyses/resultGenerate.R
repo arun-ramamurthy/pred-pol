@@ -1,8 +1,8 @@
 library(xtable)
 
 setwd("~/Desktop/School/STAT 157/predictive-policing")
-params <- readRDS("analyses/parameter_tuning.rds")
-lum <- readRDS("analyses/lum_testing_rates.rds")
+params <- readRDS("analyses/data/parameter_tuning.rds")
+lum <- readRDS("analyses/data/lum_testing_rates.rds")
 
 colnames(params) <- c("r", "s", paste0("sample", c(1:6)), "mean_capture_rate")
 rownames(params) <- NULL
@@ -18,4 +18,4 @@ xtable(lumTable, digits = 5, caption = "PredPol Accuracy across 6 Samples",
        label = "predPolAcc")
 
 
-results50 <- readRDS("analyses/results50.rds")
+results50 <- readRDS("analyses/data/results50.rds")

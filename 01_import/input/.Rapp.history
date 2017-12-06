@@ -1,0 +1,4 @@
+load("/Users/evanlimanto/code/predictive-policing/01_import/input/oakland_outline.rds")
+load("/Users/evanlimanto/code/predictive-policing/01_import/input/oakland_grid_data.rds")
+oakland_grid_data
+load("/Users/evanlimanto/code/predictive-policing/01_import/input/oakland_grid_data.rds")
