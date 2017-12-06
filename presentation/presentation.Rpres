@@ -50,8 +50,10 @@ Methodology
 ========================================================
 type: section
 
-Description of Data
+Data
 ========================================================
+- drug_crimes_with_bins.csv (individual crimes)
+- oakland_grid_data.rds (geographical coverage of Oakland bins)
 
 
 
@@ -110,7 +112,15 @@ We performed a grid search to find the optimal parameter set for our exponential
 
 Unit Testing Our Model
 ========================================================
+We utilized the `testthat` testing framework in R to unit test our functions.
 
+Functions to be tested:
+- `get_trailing_table`
+- `get_bin_score`
+- `get_bin_scores`
+- `get_neighbor_adjusted_bin_score`
+- `get_maximal_capture`
+- `get_predicted_bins`
 
 Results
 ========================================================

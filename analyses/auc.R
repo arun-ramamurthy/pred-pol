@@ -3,8 +3,8 @@
 ### auc.R #####
 ###############
 setwd("~/Desktop/School/STAT 157/predictive-policing")
-params <- readRDS("analyses/parameter_tuning.rds")
-lum <- readRDS("analyses/lum_testing_rates.rds")
+params <- readRDS("analyses/data/parameter_tuning.rds")
+lum <- readRDS("analyses/data/lum_testing_rates.rds")
 
 results50 <- readRDS("analyses/results50.rds")
 
@@ -38,5 +38,4 @@ names(lumRates) <- c(10:30)
 
 aucData <- list(ourRates, lumRates)
 names(aucData) <- c("ourRates", "lumRates")
-saveRDS(aucData, file = "analyses/aucData.rds")
-
+saveRDS(aucData, file = "analyses/data/aucData.rds")
