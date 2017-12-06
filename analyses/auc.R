@@ -37,5 +37,6 @@ names(ourRates) <- c(10:30)
 names(lumRates) <- c(10:30)
 
 aucData <- list(ourRates, lumRates)
+names(aucData) <- c("ourRates", "lumRates")
 saveRDS(aucData, file = "analyses/aucData.rds")
 
