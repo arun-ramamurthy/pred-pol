@@ -47,7 +47,7 @@ type: section
 
 Data
 ========================================================
-- drug_crimes_with_bins.csv (individual crimes)
+- drug_crimes_with_bins.csv ("bin","OCCURRED","LAG")
 - oakland_grid_data.rds (geographical coverage of Oakland bins)
 
 
@@ -109,14 +109,13 @@ Tuning Our Model
 ========================================================
 
 We performed a grid search to find the optimal parameter set for our exponential decay rate (r) and our neighbor coefficient (s). The results are shown below:
-
-![grid search](presentation_figure/grid_search.jpg)
+![grid search](grid_search.jpg)
 
 Unit Testing Our Model
 ========================================================
 We utilized the `testthat` testing framework in R to unit test our functions.
 
-Functions to be tested:
+Tested functions:
 - `get_trailing_table`
 - `get_bin_score`
 - `get_bin_scores`
