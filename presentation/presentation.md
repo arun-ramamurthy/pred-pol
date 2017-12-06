@@ -36,7 +36,6 @@ Literature Review
 ========================================================
 type: section
 
-
 Lum 2016
 ========================================================
 - “police officers – either implicitly or explicitly – consider race and ethnicity in their determination of which persons to detain and search and which neighbourhoods to patrol”
