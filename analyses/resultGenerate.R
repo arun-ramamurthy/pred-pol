@@ -3,8 +3,8 @@ library(ggplot2)
 library(reshape2)
 
 setwd("~/Desktop/School/STAT 157/predictive-policing")
-params <- readRDS("analyses/parameter_tuning.rds")
-lum <- readRDS("analyses/lum_testing_rates.rds")
+params <- readRDS("analyses/data/parameter_tuning.rds")
+lum <- readRDS("analyses/data/lum_testing_rates.rds")
 
 
 # Parameter Tuning Results #
@@ -23,7 +23,7 @@ xtable(lumTable, digits = 5, caption = "PredPol Accuracy across 6 Samples",
 
 
 # AUC Curve Generation #
-aucDf <- readRDS("analyses/aucData.rds")
+aucDf <- readRDS("analyses/data/aucData.rds")
 names(aucDf) <- c("ourRates", "lumRates")
 aucDf <- lapply(aucDf, function(x) 1 - x)
 ggDf <- data.frame(k = c(10:30), Model = aucDf[[1]], PredPol = aucDf[[2]])
