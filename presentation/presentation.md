@@ -100,7 +100,7 @@ Unit Testing Our Model
 ========================================================
 We utilized the `testthat` testing framework in R to unit test our functions.
 
-Functions to be tested:
+Tested functions:
 - `get_trailing_table`
 - `get_bin_score`
 - `get_bin_scores`
