@@ -98,6 +98,9 @@ where:
 * $N_{i}$ = List of neighbors of bin $\textit{i}$
 * $\tau$ = Today's date
 
+Bin Score
+========================================================
+
 Tuning Our Model
 ========================================================
 
