@@ -1,3 +1,4 @@
+source("analyses/model.R")
 
 ########################
 ### paramTuning.R ######
