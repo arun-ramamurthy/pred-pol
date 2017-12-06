@@ -7,15 +7,6 @@ font-family: 'Avenir'
 transition: linear
 
 
-First Slide
-========================================================
-
-For more details on authoring R presentations please visit <https://support.rstudio.com/hc/en-us/articles/200486468>.
-
-- Bullet 1
-- Bullet 2
-- Bullet 3
-
 Introduction
 ========================================================
 type: section
@@ -23,10 +14,11 @@ type: section
 
 Predictive Policing
 ========================================================
-
+the usage of mathematical and analytical techniques in law enforcement to identify potential criminal activity
 
 ETAS Models
 ========================================================
+
 
 Drawbacks of Current Predictive Policing Models
 ========================================================
