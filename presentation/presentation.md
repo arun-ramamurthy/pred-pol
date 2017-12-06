@@ -107,16 +107,10 @@ where:
 
 Bin Score
 ========================================================
-
 To compute the final bin score, we calculated a weighted sum of the $\textit{historical crime score}$ and the $\textit{neighbor crime scores}$, with weight $\textit{s}$, which we call the neighbor coefficient:
 
 $$score_{i,\tau} = (1-s) \times \sum_{t=1}^{365} e^{-rt} C_{i, \tau - t} + s \times \sum_{n \in N_{i}} \sum_{t=1}^{365} e^{-rt} C_{n, \tau - t}$$
 
-Tuning Our Model
-========================================================
-
-We performed a grid search to find the optimal parameter set for our exponential decay rate (r) and our neighbor coefficient (s). The results are shown below:
-![grid search](grid_search.jpg)
 
 Unit Testing Our Model
 ========================================================
@@ -135,9 +129,18 @@ Results
 type: section
 
 
-In Comparison to PredPol
+Tuning Our Model
 ========================================================
 
+We performed a grid search to find the optimal parameter set for our exponential decay rate (r) and our neighbor coefficient (s). The results are shown below:
+![grid search](grid_search.png)
+
+*Final Chosen Model*: r = 0.00, s = 0.00
+
+AUC Curve Comparison
+========================================================
+For varying number of police officers deployed, we compared the percent of crimes missed by the model between our model and PredPol.
+![AUC](AUCCurve.png)
 
 Discussion
 ========================================================
