@@ -133,14 +133,14 @@ Tuning Our Model
 ========================================================
 
 We performed a grid search to find the optimal parameter set for our exponential decay rate (r) and our neighbor coefficient (s). The results are shown below:
-![grid search](grid_search.png)
+<p align="center"><img src="grid_search.png" /></p>
 
-*Final Chosen Model*: r = 0.00, s = 0.00
+**Final Chosen Model**: r = 0.00, s = 0.00
 
 AUC Curve Comparison
 ========================================================
 For varying number of police officers deployed, we compared the percent of crimes missed by the model between our model and PredPol.
-![AUC](AUCCurve.png)
+<p align="center"><img src="AUCCurve.png" /></p>
 
 Discussion
 ========================================================
