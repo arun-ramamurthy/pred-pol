@@ -14,15 +14,24 @@ type: section
 
 Predictive Policing
 ========================================================
-
+- the usage of mathematical and analytical techniques in law enforcement to identify potential criminal activity
+- police officers can anticipate crime in advance and be present on the purported crime scene to prevent the crime from happening
 
 ETAS Models
 ========================================================
+- ETAS: Epidemic Type Aftershock Sequences
+- self-exciting point process
+- two main assumptions
+
+  1) that earthquakes can be split into parent and offspring events through seismicity
+  
+  2) the arrival of parent earthquakes is Poisson-distributed
 
 
 Drawbacks of Current Predictive Policing Models
 ========================================================
-
+- disproportionately expensive
+- police departments blindly trust model outputs which suffer from the same biases that are systematically found in modern police practices
 
 Literature Review
 ========================================================
@@ -31,7 +40,8 @@ type: section
 
 Lum 2016
 ========================================================
-
+- “police officers – either implicitly or explicitly – consider race and ethnicity in their determination of which persons to detain and search and which neighbourhoods to patrol”
+- “results in increasingly disproportionate policing of historically over-policed communities”
 
 Luen 2010
 ========================================================
@@ -47,7 +57,7 @@ type: section
 
 Data
 ========================================================
-- drug_crimes_with_bins.csv (individual crimes)
+- drug_crimes_with_bins.csv ("bin","OCCURRED","LAG")
 - oakland_grid_data.rds (geographical coverage of Oakland bins)
 
 
@@ -100,12 +110,16 @@ where:
 
 Bin Score
 ========================================================
+To compute the final bin score, we calculated a weighted sum of the $\textit{historical crime score}$ and the $\textit{neighbor crime scores}$, with weight $\textit{s}$, which we call the neighbor coefficient:
+
+$$score_{i,\tau} = (1-s) \times \sum_{t=1}^{365} e^{-rt} C_{i, \tau - t} + s \times \sum_{n \in N_{i}} \sum_{t=1}^{365} e^{-rt} C_{n, \tau - t}$$
+
 
 Unit Testing Our Model
 ========================================================
 We utilized the `testthat` testing framework in R to unit test our functions.
 
-Functions to be tested:
+Tested functions:
 - `get_trailing_table`
 - `get_bin_score`
 - `get_bin_scores`
