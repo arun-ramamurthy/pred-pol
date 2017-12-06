@@ -19,15 +19,24 @@ type: section
 
 Predictive Policing
 ========================================================
-
+- the usage of mathematical and analytical techniques in law enforcement to identify potential criminal activity
+- police officers can anticipate crime in advance and be present on the purported crime scene to prevent the crime from happening
 
 ETAS Models
 ========================================================
+- ETAS: Epidemic Type Aftershock Sequences
+- self-exciting point process
+- two main assumptions
+
+  1) that earthquakes can be split into parent and offspring events through seismicity
+  
+  2) the arrival of parent earthquakes is Poisson-distributed
 
 
 Drawbacks of Current Predictive Policing Models
 ========================================================
-
+- disproportionately expensive
+- police departments blindly trust model outputs which suffer from the same biases that are systematically found in modern police practices
 
 Literature Review
 ========================================================
@@ -36,7 +45,8 @@ type: section
 
 Lum 2016
 ========================================================
-
+- “police officers – either implicitly or explicitly – consider race and ethnicity in their determination of which persons to detain and search and which neighbourhoods to patrol”
+- “results in increasingly disproportionate policing of historically over-policed communities”
 
 Luen 2010
 ========================================================
