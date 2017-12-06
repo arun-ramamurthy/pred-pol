@@ -7,15 +7,6 @@ font-family: 'Avenir'
 transition: linear
 
 
-First Slide
-========================================================
-
-For more details on authoring R presentations please visit <https://support.rstudio.com/hc/en-us/articles/200486468>.
-
-- Bullet 1
-- Bullet 2
-- Bullet 3
-
 Introduction
 ========================================================
 type: section
@@ -27,6 +18,7 @@ Predictive Policing
 
 ETAS Models
 ========================================================
+
 
 Drawbacks of Current Predictive Policing Models
 ========================================================
@@ -56,6 +48,8 @@ type: section
 Description of Data
 ========================================================
 
+
+
 Conceptual Overview of Model
 ========================================================
 
@@ -73,7 +67,12 @@ To assess today's historical crime score for each bin, we looked at crime data f
 
 $$W_{t} = e^{-rt}$$
 
-where $\textit{t}$ is the lag for that particular historical date. Formally, the historical crime score equation is reproduced below:
+where $\textit{t}$ is the lag for that particular historical date. 
+
+Historical Crime Score (cont.)
+========================================================
+
+Formally, the historical crime score equation is reproduced below:
 
 $$H_{i,\tau} = \sum_{t=1}^{365} W_{t} \times C_{i, \tau - t}$$
 
@@ -86,6 +85,16 @@ where:
 
 Neighbor Crime Score
 ========================================================
+
+In addition to crime in the bin itself, we incorporated the historical crime from neighboring bins in order to capture "spillover rates" and bins in high crime areas. The neighbor crime score of bin $\textit{i}$ was simply the sum of the $\textit{historical crime scores}$ of the neighbors of $\textit{i}$:
+
+$$N_{i,\tau} = \sum_{n \in N_{i}} H_{n,\tau}$$
+
+where:
+
+* $\textit{i}$ = Bin number
+* $N_{i}$ = List of neighbors of bin $\textit{i}$
+* $\tau$ = Today's date
 
 Tuning Our Model
 ========================================================
