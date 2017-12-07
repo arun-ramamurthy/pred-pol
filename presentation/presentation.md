@@ -58,6 +58,7 @@ Mohler 2011 & Mohler 2016
 - Motivates ETAS as applied to crime: "criminological research has shown that crime can spread through local environments via a contagion-like process"
 - Tests ETAS on crime data: "The difference in the accuracy between analyst and ETAS predictions reflects advantages that algorithmic approaches have in characterizing dynamic spatio-temporal patterns"
 - Shows ETAS is superior to simpler 3-day and 7-day hotspot methods: "ETAS doubles the amount of crime predicted relative to hotspot maps with short measurement time windows"
+
 Methodology
 ========================================================
 type: section
