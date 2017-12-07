@@ -19,23 +19,30 @@ type: section
 
 Predictive Policing
 ========================================================
-- the usage of mathematical and analytical techniques in law enforcement to identify potential criminal activity
-- police officers can anticipate crime in advance and be present on the purported crime scene to prevent the crime from happening
+- Predictive Policing is the usage of mathematical and analytical techniques in law enforcement to identify potential criminal activity
+- Police officers can anticipate crime in advance and be present on the purported crime scene to prevent the crime from happening
+- Requires some sort of training data to predict crimes
+    - PredPol, a leading predictive policing software company, only requires geographical location, timestamp, and crime type
 
 ETAS Models
 ========================================================
-- ETAS: Epidemic Type Aftershock Sequences
-- self-exciting point process
-- two main assumptions
+- ETAS: Epidemic-type Aftershock Sequences
+- Models a self-exciting point process
+  - One event can cause aftershock events, those aftershock events can cause more aftershocks, etc.
+- Key properties of the ETAS model are “very sensitive to distributional assumptions and parameter values” (Luen 2010)
+- 2 main assumptions:
 
-  1) that earthquakes can be split into parent and offspring events through seismicity
-  
-  2) the arrival of parent earthquakes is Poisson-distributed
+1) Earthquakes can be split into "parent" and "offspring" events through seismicity information
 
-Drawbacks of Current Predictive Policing Models
+2) Arrival of "parent" earthquakes is Poisson-distributed
+
+Drawbacks of Predictive Policing Models
 ========================================================
-- disproportionately expensive
-- police departments blindly trust model outputs which suffer from the same biases that are systematically found in modern police practices
+- Since police collected crime data tends to suffer from systemic bias, predictive model outputs suffer from bias as well
+- In the case of PredPol, software is disproportionately expensive for its relatively weak predictive power
+  - $$$ comes from public funds
+- Police departments blindly trust model outputs
+  - Officials can hide behind authority of "math" when following biased model outputs
 
 Literature Review
 ========================================================
@@ -44,16 +51,18 @@ type: section
 Lum 2016
 ========================================================
 - “police officers – either implicitly or explicitly – consider race and ethnicity in their determination of which persons to detain and search and which neighbourhoods to patrol”
-- “results in increasingly disproportionate policing of historically over-policed communities”
+- “[feedback loops facilite] increasingly disproportionate policing of historically over-policed communities”
 
 Luen 2010
 ========================================================
-
+- "[Since] there may or may not be physical differences between ‘background’ and ‘offspring’ events, all existing methods to differentiate between them based on times, locations, and magnitudes are arbitrary"
+- Found that “automatic alarm strategies have almost all of the predictive success of the ETAS model, while avoiding many of that model’s drawbacks”
 
 Mohler 2011 & Mohler 2016
 ========================================================
-
-
+- Motivates ETAS as applied to crime: "criminological research has shown that crime can spread through local environments via a contagion-like process"
+- Tests ETAS on crime data: "The difference in the accuracy between analyst and ETAS predictions reflects advantages that algorithmic approaches have in characterizing dynamic spatio-temporal patterns"
+- Shows ETAS is superior to simpler 3-day and 7-day hotspot methods: "ETAS doubles the amount of crime predicted relative to hotspot maps with short measurement time windows"
 Methodology
 ========================================================
 type: section
@@ -80,7 +89,7 @@ To assess today's historical crime score for each bin, we looked at crime data f
 
 $$W_{t} = e^{-rt}$$
 
-where $\textit{t}$ is the lag for that particular historical date. 
+where $\textit{t}$ is the lag for that particular historical date.
 
 Historical Crime Score (cont.)
 ========================================================
@@ -153,7 +162,10 @@ type: section
 
 Interpretation of Results
 ========================================================
-
+- Why were the final tuned hyperparameters r=0, s= 0?
+  - r:
+  - s:
+- Our model, which makes much fewer distributional assumptions and is very basic to implement, performs comparably to PredPol's complex ETAS model
 
 Limitations
 ========================================================
@@ -161,3 +173,12 @@ Limitations
 
 Social Consequences
 ========================================================
+- PredPol costs the public thousands of dollars each year
+  - Our model is free
+- PredPol predictive power is overstated
+  - Our model performs just as well (~30% accuracy)
+- PredPol does not release the mechanisms behind its software
+  - Our model uses only open-source tools
+- PredPol leads to feedback loops that enforce systemic bias
+  - Our model will suffer from these same biases, but is simpler so police officials and policy groups can evaluate bias without the assumptional artifacts of more complex models
+
