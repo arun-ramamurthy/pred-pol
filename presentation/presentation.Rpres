@@ -1,7 +1,7 @@
 Simple Models for Predictive Policing
 ========================================================
-author: Stat 157 Group 1
-date: 2017.12.07
+author: Stat 157 Predictive Policing Group
+date: December 7, 2017
 autosize: true
 font-family: 'Avenir'
 transition: linear
@@ -15,7 +15,6 @@ library(knitr);
 Introduction
 ========================================================
 type: section
-
 
 Predictive Policing
 ========================================================
@@ -101,7 +100,7 @@ $$H_{i,\tau} = \sum_{t=1}^{365} W_{t} \times C_{i, \tau - t}$$
 
 where:
 
-* $C_{i, \tau - t}$ = Number of crimes that occurred in bin $\textit{i}$ at time $\textit{\tau - t}$
+* $C_{i, \tau - t}$ = Number of crimes that occurred in bin $\textit{i}$ at time $\tau - t$
 * $\tau$ = Today's date
 * $\textit{t}$ = The time lag
 * $\textit{r}$ = The exponential decay rate
@@ -146,7 +145,7 @@ type: section
 Tuning Our Model
 ========================================================
 
-We performed a grid search to find the optimal parameter set for our exponential decay rate (r) and our neighbor coefficient (s). The results are shown below:
+We performed a grid search to find the optimal parameter set for our exponential decay rate *r* and our neighbor coefficient *s*. The results are shown below:
 <p align="center"><img src="grid_search.png" /></p>
 
 **Final Chosen Model**: r = 0.00, s = 0.00
@@ -182,8 +181,8 @@ Social Consequences
   - Our model is free
 - PredPol predictive power is overstated
   - Our model performs just as well (~30% accuracy)
-- PredPol does not release the mechanaddisms behind its software
-  - Our model uses only open-source tools
+- PredPol does not release the mechanisms behind its software
+  - Our model uses only open-source tools and is transparent
 - PredPol leads to feedback loops that enforce systemic bias
   - Our model will suffer from these same biases, but is simpler so police officials and policy groups can evaluate bias without the assumptional artifacts of more complex models
 

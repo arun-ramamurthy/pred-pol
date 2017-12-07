@@ -1,7 +1,7 @@
 Simple Models for Predictive Policing
 ========================================================
-author: Stat 157 Group 1
-date: 2017.12.07
+author: Stat 157 Predictive Policing Group
+date: December 7, 2017
 autosize: true
 font-family: 'Avenir'
 transition: linear
@@ -10,7 +10,6 @@ transition: linear
 Introduction
 ========================================================
 type: section
-
 
 Predictive Policing
 ========================================================
@@ -96,7 +95,7 @@ $$H_{i,\tau} = \sum_{t=1}^{365} W_{t} \times C_{i, \tau - t}$$
 
 where:
 
-* $C_{i, \tau - t}$ = Number of crimes that occurred in bin $\textit{i}$ at time $\textit{\tau - t}$
+* $C_{i, \tau - t}$ = Number of crimes that occurred in bin $\textit{i}$ at time $\tau - t$
 * $\tau$ = Today's date
 * $\textit{t}$ = The time lag
 * $\textit{r}$ = The exponential decay rate
@@ -141,7 +140,7 @@ type: section
 Tuning Our Model
 ========================================================
 
-We performed a grid search to find the optimal parameter set for our exponential decay rate (r) and our neighbor coefficient (s). The results are shown below:
+We performed a grid search to find the optimal parameter set for our exponential decay rate *r* and our neighbor coefficient *s*. The results are shown below:
 <p align="center"><img src="grid_search.png" /></p>
 
 **Final Chosen Model**: r = 0.00, s = 0.00
@@ -159,8 +158,9 @@ type: section
 Interpretation of Results
 ========================================================
 - Why were the final tuned hyperparameters r=0, s= 0?
-  - r:
-  - s:
+  - r: (Drug) crimes do not trigger later offspring crimes
+  - s: (Drug) crimes in one bin do not affect the adjacent bins
+  - This suggests Mohler and PredPol's assumption that crime spreads via a contagion-like process through time and space does not hold for at least some crime types
 - Our model, which makes much fewer distributional assumptions and is very basic to implement, performs comparably to PredPol's complex ETAS model
 
 Limitations
@@ -176,8 +176,8 @@ Social Consequences
   - Our model is free
 - PredPol predictive power is overstated
   - Our model performs just as well (~30% accuracy)
-- PredPol does not release the mechanaddisms behind its software
-  - Our model uses only open-source tools
+- PredPol does not release the mechanisms behind its software
+  - Our model uses only open-source tools and is transparent
 - PredPol leads to feedback loops that enforce systemic bias
   - Our model will suffer from these same biases, but is simpler so police officials and policy groups can evaluate bias without the assumptional artifacts of more complex models
 
