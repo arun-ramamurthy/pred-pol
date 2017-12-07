@@ -163,8 +163,9 @@ type: section
 Interpretation of Results
 ========================================================
 - Why were the final tuned hyperparameters r=0, s= 0?
-  - r:
-  - s:
+  - r: (Drug) crimes do not trigger later offspring crimes
+  - s: (Drug) crimes in one bin do not affect the adjacent bins
+  - This suggests Mohler and PredPol's assumption that crime spreads via a contagion-like process through time and space does not hold for at least some crime types
 - Our model, which makes much fewer distributional assumptions and is very basic to implement, performs comparably to PredPol's complex ETAS model
 
 Limitations
