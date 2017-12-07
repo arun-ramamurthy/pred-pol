@@ -164,6 +164,9 @@ Interpretation of Results
 
 Limitations
 ========================================================
+- Similiarity between Kristian Lum's replication and PredPol itself
+- External Validity: Specifically focused on drug crimes in Oakland
+- Predictions affected by Data Bias: Still unsolved
 
 
 Social Consequences
@@ -172,7 +175,7 @@ Social Consequences
   - Our model is free
 - PredPol predictive power is overstated
   - Our model performs just as well (~30% accuracy)
-- PredPol does not release the mechanisms behind its software
+- PredPol does not release the mechanaddisms behind its software
   - Our model uses only open-source tools
 - PredPol leads to feedback loops that enforce systemic bias
   - Our model will suffer from these same biases, but is simpler so police officials and policy groups can evaluate bias without the assumptional artifacts of more complex models
