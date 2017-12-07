@@ -17,9 +17,12 @@ mod <- function(r, s) {
   get_average_achieved_capture_rate(sampDates, oak_agg, 20, 365, r, s)
 }
 
-for(i in 1:6) {
+trainDates <- c(seq(as.Date("2010-01-01"), as.Date("2010-12-27"), by = 1),
+                seq(as.Date("2011-12-31"), as.Date("2012-01-08"), by = 1))
+
+for(i in 1:5) {
   print(paste("----- TRIAL", i, "-----"))
-  sampDates <- base::sample(seq(as.Date("2010-12-28"), as.Date("2011-12-30"), by = 1), size = 50)
+  sampDates <- base::sample(trainDates, size = 50)
   capture_rate <- mapply(mod, params$r, params$s)
   params <- cbind(params, capture_rate)
   lum_rates <- c(lum_rates, get_average_predpol_capture_rate(oak_agg, 20, predpol_preds, sampDates))
